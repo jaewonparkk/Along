@@ -130,10 +130,10 @@ enum FlexibleStopCategory:
             return "e.g. brunch, pancakes"
 
         case .lunch:
-            return "e.g. Japanese, Korean, cheap"
+            return "e.g. Italian, sandwiches, Korean"
 
         case .dinner:
-            return "e.g. Italian, cozy"
+            return "e.g. steak, sushi, cozy Italian"
 
         case .coffee:
             return "e.g. matcha, pretty, quiet"
@@ -166,12 +166,76 @@ enum FlexibleStopCategory:
         case .breakfast,
              .lunch,
              .dinner:
-
             return true
 
         default:
-
             return false
+        }
+    }
+
+
+    // MARK: Natural Timing
+
+    /*
+     This is NOT a hardcoded place rule.
+
+     It is semantic meaning:
+
+     Breakfast ≠ 8 PM
+     Dinner ≠ 1 PM
+
+     User-specified timing overrides this.
+     */
+
+    var naturalTimeWindowMinutes:
+        ClosedRange<Int>? {
+
+        switch self {
+
+        case .breakfast:
+            return
+                (7 * 60)...(11 * 60)
+
+
+        case .lunch:
+            return
+                (11 * 60)...(14 * 60)
+
+
+        case .dinner:
+            return
+                (17 * 60)...(21 * 60)
+
+
+        case .drinks:
+            return
+                (17 * 60)...(23 * 60)
+
+
+        default:
+            return nil
+        }
+    }
+
+
+    var naturalTimingLabel: String? {
+
+        switch self {
+
+        case .breakfast:
+            return "Breakfast time"
+
+        case .lunch:
+            return "Lunch time"
+
+        case .dinner:
+            return "Dinner time"
+
+        case .drinks:
+            return "Evening"
+
+        default:
+            return nil
         }
     }
 }
@@ -253,46 +317,10 @@ enum FlexibleStopTimePreference:
             return "clock.badge.checkmark"
         }
     }
-
-
-    /*
-     These ranges are NOT used by the
-     optimizer yet.
-
-     They give us a clean semantic model
-     for the next planning-engine step.
-     */
-
-    var preferredHourRange: ClosedRange<Int>? {
-
-        switch self {
-
-        case .anytime:
-            return nil
-
-        case .morning:
-            return 7...11
-
-        case .midday:
-            return 11...14
-
-        case .afternoon:
-            return 14...17
-
-        case .evening:
-            return 17...20
-
-        case .night:
-            return 20...23
-
-        case .specific:
-            return nil
-        }
-    }
 }
 
 
-// MARK: - Stay Duration
+// MARK: - Stop Duration
 
 enum StopDurationPreference:
     String,
@@ -311,34 +339,6 @@ enum StopDurationPreference:
 
     var id: String {
         rawValue
-    }
-
-
-    var title: String {
-
-        switch self {
-
-        case .unspecified:
-            return "No preference"
-
-        case .quick:
-            return "Quick stop"
-
-        case .thirtyMinutes:
-            return "30 min"
-
-        case .oneHour:
-            return "1 hr"
-
-        case .ninetyMinutes:
-            return "1.5 hr"
-
-        case .twoHours:
-            return "2 hr"
-
-        case .custom:
-            return "Custom"
-        }
     }
 
 
@@ -379,46 +379,26 @@ struct FlexibleStop: Identifiable {
 
     let id: UUID
 
-    var category: FlexibleStopCategory
+    var category:
+        FlexibleStopCategory
 
-    /*
-     Natural-language detail.
+    var query:
+        String
 
-     Examples:
-     matcha
-     Japanese
-     pretty and quiet
-     wine bar
-     vintage clothes
-     */
-
-    var query: String
-
-
-    var isRequired: Bool
-
-
-    // MARK: Time
+    var isRequired:
+        Bool
 
     var timePreference:
         FlexibleStopTimePreference
 
-
-    /*
-     Only meaningful when
-     timePreference == .specific
-     */
-
-    var specificTime: Date
-
-
-    // MARK: Stay Duration
+    var specificTime:
+        Date
 
     var stayDuration:
         StopDurationPreference
 
-
-    var customStayMinutes: Int
+    var customStayMinutes:
+        Int
 
 
     init(
@@ -453,7 +433,8 @@ struct FlexibleStop: Identifiable {
     }
 
 
-    var preferredStayMinutes: Int? {
+    var preferredStayMinutes:
+        Int? {
 
         stayDuration.minutes(
             customMinutes:
@@ -466,58 +447,22 @@ struct FlexibleStop: Identifiable {
 // MARK: - Start Preference
 
 enum StartPreference:
-    String,
-    CaseIterable,
-    Identifiable,
     Hashable {
 
+    /*
+     No more:
+     coffeeFirst
+     eatFirst
+
+     because those options should only exist
+     when the user actually requested them.
+     */
+
     case noPreference
-    case eatFirst
-    case coffeeFirst
-    case anchorsFirst
 
+    case mustVisitsFirst
 
-    var id: String {
-        rawValue
-    }
-
-
-    var title: String {
-
-        switch self {
-
-        case .noPreference:
-            return "No preference"
-
-        case .eatFirst:
-            return "Eat first"
-
-        case .coffeeFirst:
-            return "Coffee first"
-
-        case .anchorsFirst:
-            return "Must-visits first"
-        }
-    }
-
-
-    var subtitle: String {
-
-        switch self {
-
-        case .noPreference:
-            return "Let Halfway decide what makes the most sense"
-
-        case .eatFirst:
-            return "Prioritize a meal near the beginning"
-
-        case .coffeeFirst:
-            return "Prioritize coffee near the beginning"
-
-        case .anchorsFirst:
-            return "Visit fixed places before flexible stops"
-        }
-    }
+    case flexibleStop(UUID)
 }
 
 
@@ -564,16 +509,16 @@ enum OptimizationGoal:
         switch self {
 
         case .balanced:
-            return "Balance place quality and travel time"
+            return "Balance timing, place quality, and travel"
 
         case .lessTravel:
-            return "Favor the smallest detours"
+            return "Favor smaller detours"
 
         case .bestMatch:
-            return "Prioritize places that best match what you typed"
+            return "Favor places that best match what you typed"
 
         case .morePlaces:
-            return "Favor an efficient schedule with more stops"
+            return "Make efficient use of your available time"
         }
     }
 }
@@ -624,24 +569,18 @@ enum DayPace:
             return "A comfortable amount to do"
 
         case .packed:
-            return "Make the most of the available time"
+            return "Fit more into the day"
         }
     }
 
 
-    /*
-     Used in the NEXT optimizer step.
-
-     Generic planning behavior only;
-     nothing location-specific.
-     */
-
-    var defaultBufferMinutes: Int {
+    var defaultBufferMinutes:
+        Int {
 
         switch self {
 
         case .relaxed:
-            return 30
+            return 25
 
         case .balanced:
             return 15
@@ -657,16 +596,14 @@ enum DayPace:
 
 struct PlanIntent {
 
-    // MARK: Day Window
+    var dayStart:
+        Date
 
-    var dayStart: Date
+    var finishBy:
+        Date
 
-    var finishBy: Date
-
-
-    // MARK: Style
-
-    var pace: DayPace
+    var pace:
+        DayPace
 
     var startPreference:
         StartPreference
@@ -730,16 +667,8 @@ struct PlanIntent {
     }
 
 
-    /*
-     If someone chooses:
-
-     Start 5 PM
-     Finish 1 AM
-
-     treat 1 AM as the following day.
-     */
-
-    var normalizedFinishBy: Date {
+    var normalizedFinishBy:
+        Date {
 
         if finishBy > dayStart {
 
@@ -749,22 +678,15 @@ struct PlanIntent {
 
         return Calendar.current
             .date(
-                byAdding: .day,
-                value: 1,
-                to: finishBy
+                byAdding:
+                    .day,
+                value:
+                    1,
+                to:
+                    finishBy
             )
             ??
             finishBy
-    }
-
-
-    var availableDuration:
-        TimeInterval {
-
-        normalizedFinishBy
-            .timeIntervalSince(
-                dayStart
-            )
     }
 }
 
@@ -786,10 +708,8 @@ struct PlanRequest {
     init(
         anchors:
             [AnchorStop] = [],
-
         flexibleStops:
             [FlexibleStop] = [],
-
         intent:
             PlanIntent = PlanIntent()
     ) {
@@ -820,7 +740,9 @@ struct PlanRequest {
 struct ResolvedFlexibleStop:
     Identifiable {
 
-    var id: UUID {
+    var id:
+        UUID {
+
         source.id
     }
 
@@ -839,6 +761,71 @@ struct ResolvedFlexibleStop:
 }
 
 
+// MARK: - Skipped Flexible Stop
+
+struct SkippedFlexibleStop:
+    Identifiable {
+
+    var id:
+        UUID {
+
+        source.id
+    }
+
+
+    let source:
+        FlexibleStop
+
+    let reason:
+        String
+}
+
+
+// MARK: - Timing Status
+
+enum ScheduleTimingStatus:
+    String,
+    Hashable {
+
+    case noPreference
+    case fitsPreference
+    case waitedForPreference
+    case outsidePreference
+}
+
+
+// MARK: - Scheduled Stop
+
+struct ScheduledStop:
+    Identifiable {
+
+    var id:
+        UUID {
+
+        place.id
+    }
+
+
+    let place:
+        PlannedPlace
+
+    let arrivalTime:
+        Date
+
+    let startTime:
+        Date
+
+    let departureTime:
+        Date
+
+    let timingStatus:
+        ScheduleTimingStatus
+
+    let requestedTiming:
+        String?
+}
+
+
 // MARK: - Generated Itinerary
 
 struct GeneratedItinerary {
@@ -848,4 +835,59 @@ struct GeneratedItinerary {
 
     let resolvedFlexibleStops:
         [ResolvedFlexibleStop]
+
+    let skippedFlexibleStops:
+        [SkippedFlexibleStop]
+
+    let scheduledStops:
+        [ScheduledStop]
+
+
+    init(
+        orderedPlaces:
+            [PlannedPlace],
+
+        resolvedFlexibleStops:
+            [ResolvedFlexibleStop],
+
+        skippedFlexibleStops:
+            [SkippedFlexibleStop] = [],
+
+        scheduledStops:
+            [ScheduledStop] = []
+    ) {
+
+        self.orderedPlaces =
+            orderedPlaces
+
+        self.resolvedFlexibleStops =
+            resolvedFlexibleStops
+
+        self.skippedFlexibleStops =
+            skippedFlexibleStops
+
+        self.scheduledStops =
+            scheduledStops
+    }
+
+
+    var estimatedFinishTime:
+        Date? {
+
+        scheduledStops
+            .last?
+            .departureTime
+    }
+
+
+    var hasTimingConflicts:
+        Bool {
+
+        scheduledStops.contains {
+
+            $0.timingStatus
+            ==
+            .outsidePreference
+        }
+    }
 }

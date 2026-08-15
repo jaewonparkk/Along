@@ -1,21 +1,28 @@
 import Foundation
-import MapKit
+import CoreLocation
+import GooglePlaces
 
 
-// MARK: - Flexible Stop Resolver Error
+// MARK: - Resolver Error
 
-enum FlexibleStopResolverError: LocalizedError {
+enum FlexibleStopResolverError:
+    LocalizedError {
 
-    case noResults(String)
+    case noResults(
+        String
+    )
 
 
     var errorDescription: String? {
 
         switch self {
 
-        case .noResults(let query):
+        case .noResults(
+            let query
+        ):
 
-            return "I couldn't find a good place for “\(query)” nearby."
+            return
+                "Halfway couldn't find a real place matching “\(query)”."
         }
     }
 }
@@ -23,198 +30,307 @@ enum FlexibleStopResolverError: LocalizedError {
 
 // MARK: - Flexible Stop Resolver
 
+@MainActor
 final class FlexibleStopResolver {
 
-    // MARK: - Active Searches
-
-    private var activeSearches: [MKLocalSearch] = []
-
-    private var generation: Int = 0
+    private let placesService =
+        GooglePlacesService.shared
 
 
-    // MARK: - Search Candidates
+    // MARK: - Search
 
     func searchCandidates(
-        for stop: FlexibleStop,
-        region: MKCoordinateRegion?,
-        completion:
-            @escaping (
-                Result<[MKMapItem], Error>
-            ) -> Void
-    ) {
+        for stop:
+            FlexibleStop,
 
-        cancel()
+        center:
+            CLLocationCoordinate2D,
 
-
-        generation += 1
-
-
-        let currentGeneration =
-            generation
-
+        radiusMeters:
+            CLLocationDistance
+    ) async throws -> [PlaceCandidate] {
 
         let queries =
-            makeSearchQueries(
-                for: stop
+            makeQueries(
+                for:
+                    stop
             )
 
 
-        guard !queries.isEmpty else {
+        var seen:
+            Set<String> = []
 
-            completion(
-                .failure(
-                    FlexibleStopResolverError
-                        .noResults(
-                            stop.category.title
-                        )
+
+        var merged:
+            [PlaceCandidate] = []
+
+
+        /*
+         Start locally.
+
+         If necessary, progressively expand.
+
+         Generic radius expansion only:
+         no city is encoded anywhere.
+         */
+
+        let radiusScales:
+            [Double] = [
+                1,
+                2,
+                4
+            ]
+
+
+        for scale
+            in radiusScales {
+
+            let radius =
+                min(
+                    50_000,
+
+                    max(
+                        1_000,
+                        radiusMeters
+                        *
+                        scale
+                    )
                 )
-            )
 
-            return
+
+            for query in queries {
+
+                if Task.isCancelled {
+
+                    return []
+                }
+
+
+                do {
+
+                    let candidates =
+                        try await placesService.search(
+                            text:
+                                query,
+
+                            center:
+                                center,
+
+                            radiusMeters:
+                                radius
+                        )
+
+
+                    for candidate
+                        in candidates {
+
+                        let key =
+                            candidateKey(
+                                candidate
+                            )
+
+
+                        guard !seen.contains(
+                            key
+                        ) else {
+
+                            continue
+                        }
+
+
+                        seen.insert(
+                            key
+                        )
+
+
+                        merged.append(
+                            candidate
+                        )
+                    }
+
+
+                    /*
+                     Healthy candidate pool.
+                     No need to keep expanding.
+                     */
+
+                    if merged.count >= 15 {
+
+                        return Array(
+                            merged.prefix(
+                                20
+                            )
+                        )
+                    }
+
+                } catch {
+
+                    print(
+                        """
+                        🔎 Google place query skipped
+                        \(query)
+                        \(error.localizedDescription)
+                        """
+                    )
+                }
+            }
         }
 
 
-        searchQueries(
-            queries,
-            queryIndex: 0,
-            region: region,
-            generation: currentGeneration,
-            accumulatedItems: [],
-            completion: completion
+        guard !merged.isEmpty else {
+
+            let label =
+                stop.query
+                    .trimmingCharacters(
+                        in:
+                            .whitespacesAndNewlines
+                    )
+
+
+            throw FlexibleStopResolverError
+                .noResults(
+                    label.isEmpty
+                    ?
+                    stop.category.title
+                    :
+                    label
+                )
+        }
+
+
+        return Array(
+            merged.prefix(
+                20
+            )
         )
     }
 
 
-    // MARK: - Query Builder
+    // MARK: - Queries
 
-    private func makeSearchQueries(
-        for stop: FlexibleStop
+    private func makeQueries(
+        for stop:
+            FlexibleStop
     ) -> [String] {
 
         let detail =
             stop.query
                 .trimmingCharacters(
-                    in: .whitespacesAndNewlines
+                    in:
+                        .whitespacesAndNewlines
                 )
 
 
-        let category =
-            stop.category.title
-
-
-        var queries: [String] = []
-
-
         /*
-         IMPORTANT:
+         Don't throw away what the user typed.
 
-         We do NOT translate specific words.
-
-         No:
-         matcha → some hardcoded cafe
-
-         No:
-         ramen → some hardcoded restaurant
-
-         We simply give MapKit multiple
-         natural-language versions.
+         "sandwiches" should NOT silently
+         degrade into "any lunch restaurant".
          */
 
+        guard !detail.isEmpty else {
 
-        // MARK: User Input First
+            return [
+                genericCategoryQuery(
+                    for:
+                        stop.category
+                )
+            ]
+        }
 
-        if !detail.isEmpty {
 
-            queries.append(
+        var queries:
+            [String] = [
                 detail
-            )
-        }
+            ]
 
-
-        // MARK: Input + Category Context
-
-        if !detail.isEmpty {
-
-            queries.append(
-                "\(detail) \(category)"
-            )
-        }
-
-
-        // MARK: Category Alone
-
-        queries.append(
-            category
-        )
-
-
-        /*
-         Generic context.
-
-         These are NOT specific businesses
-         or locations.
-
-         They simply help MapKit understand
-         the type of POI the user wants.
-         */
 
         switch stop.category {
 
-        case .breakfast,
-             .lunch,
-             .dinner:
+        case .breakfast:
 
-            if !detail.isEmpty {
+            queries.append(
+                "\(detail) breakfast"
+            )
 
-                queries.append(
-                    "\(detail) restaurant"
-                )
-            }
+
+            queries.append(
+                "\(detail) restaurant"
+            )
+
+
+        case .lunch:
+
+            queries.append(
+                "\(detail) lunch"
+            )
+
+
+            queries.append(
+                "\(detail) restaurant"
+            )
+
+
+        case .dinner:
+
+            queries.append(
+                "\(detail) dinner"
+            )
+
+
+            queries.append(
+                "\(detail) restaurant"
+            )
 
 
         case .coffee:
 
-            if !detail.isEmpty {
+            queries.append(
+                "\(detail) cafe"
+            )
 
-                queries.append(
-                    "\(detail) cafe"
-                )
-            }
+
+            queries.append(
+                "\(detail) coffee"
+            )
 
 
         case .dessert:
 
-            if !detail.isEmpty {
-
-                queries.append(
-                    "\(detail) dessert"
-                )
-            }
+            queries.append(
+                "\(detail) dessert"
+            )
 
 
         case .drinks:
 
-            if !detail.isEmpty {
-
-                queries.append(
-                    "\(detail) bar"
-                )
-            }
+            queries.append(
+                "\(detail) bar"
+            )
 
 
         case .shopping:
 
-            if !detail.isEmpty {
-
-                queries.append(
-                    "\(detail) shopping"
-                )
-            }
+            queries.append(
+                "\(detail) shop"
+            )
 
 
-        case .activity,
-             .outdoors,
-             .custom:
+        case .activity:
+
+            queries.append(
+                "\(detail) attraction"
+            )
+
+
+        case .outdoors:
+
+            queries.append(
+                "\(detail) outdoor"
+            )
+
+
+        case .custom:
 
             break
         }
@@ -226,227 +342,134 @@ final class FlexibleStopResolver {
     }
 
 
-    // MARK: - Sequential Search
+    // MARK: - Empty Query Category
 
-    private func searchQueries(
-        _ queries: [String],
-        queryIndex: Int,
-        region: MKCoordinateRegion?,
-        generation: Int,
-        accumulatedItems: [MKMapItem],
-        completion:
-            @escaping (
-                Result<[MKMapItem], Error>
-            ) -> Void
-    ) {
+    private func genericCategoryQuery(
+        for category:
+            FlexibleStopCategory
+    ) -> String {
 
-        guard generation == self.generation else {
-            return
-        }
+        switch category {
+
+        case .breakfast:
+
+            return "breakfast"
 
 
-        // MARK: Finished All Queries
+        case .lunch:
 
-        guard queryIndex < queries.count else {
-
-            let finalItems =
-                removeDuplicates(
-                    accumulatedItems
-                )
+            return "lunch restaurant"
 
 
-            if finalItems.isEmpty {
+        case .dinner:
 
-                completion(
-                    .failure(
-                        FlexibleStopResolverError
-                            .noResults(
-                                queries.first
-                                ??
-                                "this stop"
-                            )
-                    )
-                )
-
-            } else {
-
-                completion(
-                    .success(
-                        Array(
-                            finalItems
-                                .prefix(12)
-                        )
-                    )
-                )
-            }
+            return "dinner restaurant"
 
 
-            return
-        }
+        case .coffee:
+
+            return "cafe"
 
 
-        let query =
-            queries[queryIndex]
+        case .dessert:
+
+            return "dessert"
 
 
-        let request =
-            MKLocalSearch.Request()
+        case .drinks:
+
+            return "bar"
 
 
-        request.naturalLanguageQuery =
-            query
+        case .shopping:
+
+            return "shopping"
 
 
-        if let region {
+        case .activity:
 
-            request.region =
-                region
-        }
+            return "things to do"
 
 
-        let search =
-            MKLocalSearch(
-                request: request
-            )
+        case .outdoors:
+
+            return "outdoor attraction"
 
 
-        activeSearches.append(
-            search
-        )
+        case .custom:
 
-
-        search.start {
-            [weak self]
-            response,
-            error in
-
-
-            guard let self else {
-                return
-            }
-
-
-            DispatchQueue.main.async {
-
-                guard generation == self.generation else {
-                    return
-                }
-
-
-                var updatedItems =
-                    accumulatedItems
-
-
-                if let error {
-
-                    /*
-                     THIS IS IMPORTANT.
-
-                     One MapKit query failing
-                     does NOT destroy the plan.
-
-                     We log it and try the next
-                     natural-language variant.
-                     */
-
-                    print(
-                        """
-                        🔎 Flexible search skipped
-                        Query: \(query)
-                        Error: \(error)
-                        """
-                    )
-
-                } else {
-
-                    let items =
-                        response?
-                            .mapItems
-                        ??
-                        []
-
-
-                    updatedItems.append(
-                        contentsOf:
-                            items
-                    )
-                }
-
-
-                /*
-                 Stop early once we have
-                 a healthy number of candidates.
-                 */
-
-                let unique =
-                    self.removeDuplicates(
-                        updatedItems
-                    )
-
-
-                if unique.count >= 10 {
-
-                    completion(
-                        .success(
-                            Array(
-                                unique
-                                    .prefix(12)
-                            )
-                        )
-                    )
-
-
-                    return
-                }
-
-
-                self.searchQueries(
-                    queries,
-                    queryIndex:
-                        queryIndex + 1,
-                    region:
-                        region,
-                    generation:
-                        generation,
-                    accumulatedItems:
-                        updatedItems,
-                    completion:
-                        completion
-                )
-            }
+            return "places"
         }
     }
 
 
-    // MARK: - Remove Duplicate Places
+    // MARK: - Candidate Key
 
-    private func removeDuplicates(
-        _ items: [MKMapItem]
-    ) -> [MKMapItem] {
+    private func candidateKey(
+        _ candidate:
+            PlaceCandidate
+    ) -> String {
+
+        if let googleID =
+            candidate
+                .googlePlace?
+                .placeID {
+
+            return googleID
+        }
+
+
+        let coordinate =
+            candidate
+                .plannedPlace
+                .coordinate
+
+
+        return String(
+            format:
+                "%.5f,%.5f",
+            coordinate.latitude,
+            coordinate.longitude
+        )
+    }
+
+
+    // MARK: - Unique Strings
+
+    private func uniqueStrings(
+        _ values:
+            [String]
+    ) -> [String] {
 
         var seen:
             Set<String> = []
 
 
-        var uniqueItems:
-            [MKMapItem] = []
+        var result:
+            [String] = []
 
 
-        for item in items {
+        for value in values {
 
-            let coordinate =
-                item.halfwayCoordinate
+            let cleaned =
+                value
+                    .trimmingCharacters(
+                        in:
+                            .whitespacesAndNewlines
+                    )
 
 
             let key =
-                """
-                \(normalize(item.name ?? ""))|
-                \(String(format: "%.5f", coordinate.latitude))|
-                \(String(format: "%.5f", coordinate.longitude))
-                """
+                cleaned.lowercased()
 
 
-            guard !seen.contains(key) else {
+            guard
+                !cleaned.isEmpty,
+                !seen.contains(
+                    key
+                )
+            else {
+
                 continue
             }
 
@@ -456,107 +479,22 @@ final class FlexibleStopResolver {
             )
 
 
-            uniqueItems.append(
-                item
+            result.append(
+                cleaned
             )
         }
 
 
-        return uniqueItems
+        return result
     }
 
-
-    // MARK: - String Helpers
-
-    private func normalize(
-        _ value: String
-    ) -> String {
-
-        value
-            .folding(
-                options: [
-                    .caseInsensitive,
-                    .diacriticInsensitive
-                ],
-                locale: .current
-            )
-            .lowercased()
-            .trimmingCharacters(
-                in: .whitespacesAndNewlines
-            )
-    }
-
-
-    private func uniqueStrings(
-        _ values: [String]
-    ) -> [String] {
-
-        var seen:
-            Set<String> = []
-
-
-        var output:
-            [String] = []
-
-
-        for value in values {
-
-            let clean =
-                value
-                    .trimmingCharacters(
-                        in:
-                            .whitespacesAndNewlines
-                    )
-
-
-            guard !clean.isEmpty else {
-                continue
-            }
-
-
-            let normalized =
-                normalize(
-                    clean
-                )
-
-
-            guard !seen.contains(
-                normalized
-            ) else {
-
-                continue
-            }
-
-
-            seen.insert(
-                normalized
-            )
-
-
-            output.append(
-                clean
-            )
-        }
-
-
-        return output
-    }
-
-
-    // MARK: - Cancel
 
     func cancel() {
 
-        generation += 1
-
-
-        for search in activeSearches {
-
-            search.cancel()
-        }
-
-
-        activeSearches =
-            []
+        /*
+         Search calls are owned by the current
+         Swift Task. PlanningEngine cancels
+         that task when a new plan begins.
+         */
     }
 }

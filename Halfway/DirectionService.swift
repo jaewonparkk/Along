@@ -8,29 +8,39 @@ import Combine
 
 struct RouteLeg: Identifiable {
 
-    let id = UUID()
+    let id =
+        UUID()
 
 
-    let fromPlaceID: UUID?
-
-    let toPlaceID: UUID?
-
-
-    let fromName: String
-
-    let toName: String
+    let fromPlaceID:
+        UUID?
 
 
-    let route: MKRoute
+    let toPlaceID:
+        UUID?
 
 
-    var distance: CLLocationDistance {
+    let fromName:
+        String
+
+
+    let toName:
+        String
+
+
+    let route:
+        MKRoute
+
+
+    var distance:
+        CLLocationDistance {
 
         route.distance
     }
 
 
-    var travelTime: TimeInterval {
+    var travelTime:
+        TimeInterval {
 
         route.expectedTravelTime
     }
@@ -44,18 +54,21 @@ final class DirectionsService: ObservableObject {
     // MARK: - Published
 
     @Published private(set)
-    var routeLegs: [RouteLeg] = []
+    var routeLegs:
+        [RouteLeg] = []
 
 
     @Published private(set)
-    var isLoading: Bool = false
+    var isLoading:
+        Bool = false
 
 
     @Published private(set)
-    var errorMessage: String?
+    var errorMessage:
+        String?
 
 
-    // MARK: - Async State
+    // MARK: - State
 
     private var activeDirections:
         [MKDirections] = []
@@ -65,21 +78,25 @@ final class DirectionsService: ObservableObject {
         Int = 0
 
 
-    // MARK: - Internal Endpoint
+    // MARK: - Endpoint
 
     private struct RouteEndpoint {
 
-        let mapItem: MKMapItem
+        let mapItem:
+            MKMapItem
 
-        let placeID: UUID?
+        let placeID:
+            UUID?
 
-        let name: String
+        let name:
+            String
     }
 
 
     // MARK: - Totals
 
-    var totalTravelTime: TimeInterval {
+    var totalTravelTime:
+        TimeInterval {
 
         routeLegs.reduce(0) {
 
@@ -88,7 +105,8 @@ final class DirectionsService: ObservableObject {
     }
 
 
-    var totalDistance: CLLocationDistance {
+    var totalDistance:
+        CLLocationDistance {
 
         routeLegs.reduce(0) {
 
@@ -97,13 +115,16 @@ final class DirectionsService: ObservableObject {
     }
 
 
-    // MARK: - Build Route
+    // MARK: - Build
 
     func buildRoute(
         for places: [PlannedPlace],
         from userLocation: CLLocation?,
         travelMode: TravelMode,
-        completion: @escaping (Bool) -> Void
+        completion:
+            @escaping (
+                Bool
+            ) -> Void
     ) {
 
         cancel()
@@ -130,9 +151,7 @@ final class DirectionsService: ObservableObject {
                 false
 
 
-            completion(
-                true
-            )
+            completion(true)
 
             return
         }
@@ -146,17 +165,23 @@ final class DirectionsService: ObservableObject {
 
         if let userLocation {
 
+            let current =
+                makeLocationMapItem(
+                    for:
+                        userLocation
+                )
+
+
+            current.name =
+                "Current Location"
+
+
             endpoints.append(
                 RouteEndpoint(
                     mapItem:
-                        makeMapItem(
-                            for:
-                                userLocation
-                        ),
-
+                        current,
                     placeID:
                         nil,
-
                     name:
                         "Current Location"
                 )
@@ -164,7 +189,7 @@ final class DirectionsService: ObservableObject {
         }
 
 
-        // MARK: Planned Places
+        // MARK: Places
 
         endpoints.append(
             contentsOf:
@@ -175,10 +200,8 @@ final class DirectionsService: ObservableObject {
                     RouteEndpoint(
                         mapItem:
                             place.mapItem,
-
                         placeID:
                             place.id,
-
                         name:
                             place.name
                     )
@@ -186,21 +209,13 @@ final class DirectionsService: ObservableObject {
         )
 
 
-        /*
-         If there is no current location
-         and only one place, there is
-         nothing to route between.
-         */
-
         guard endpoints.count >= 2 else {
 
             isLoading =
                 false
 
 
-            completion(
-                true
-            )
+            completion(true)
 
             return
         }
@@ -213,37 +228,43 @@ final class DirectionsService: ObservableObject {
         buildLeg(
             endpoints:
                 endpoints,
-
             index:
                 0,
-
             travelMode:
                 travelMode,
-
             generation:
                 currentGeneration,
-
             builtLegs:
                 [],
-
             completion:
                 completion
         )
     }
 
 
-    // MARK: - Build Sequential Legs
+    // MARK: - Build Leg
 
     private func buildLeg(
-        endpoints: [RouteEndpoint],
-        index: Int,
-        travelMode: TravelMode,
-        generation: Int,
-        builtLegs: [RouteLeg],
-        completion: @escaping (Bool) -> Void
+        endpoints:
+            [RouteEndpoint],
+        index:
+            Int,
+        travelMode:
+            TravelMode,
+        generation:
+            Int,
+        builtLegs:
+            [RouteLeg],
+        completion:
+            @escaping (
+                Bool
+            ) -> Void
     ) {
 
-        guard generation == self.generation else {
+        guard generation ==
+                self.generation
+        else {
+
             return
         }
 
@@ -262,9 +283,12 @@ final class DirectionsService: ObservableObject {
                 false
 
 
-            completion(
-                true
-            )
+            /*
+             An itinerary is valid even when
+             MapKit could not draw one segment.
+             */
+
+            completion(true)
 
             return
         }
@@ -278,88 +302,276 @@ final class DirectionsService: ObservableObject {
             endpoints[index + 1]
 
 
-        // MARK: Avoid Same Point Requests
+        // MARK: Same Place
 
-        let sourceCoordinate =
-            source
-                .mapItem
-                .halfwayCoordinate
-
-
-        let destinationCoordinate =
-            destination
-                .mapItem
-                .halfwayCoordinate
-
-
-        let sourceLocation =
-            CLLocation(
-                latitude:
-                    sourceCoordinate.latitude,
-
-                longitude:
-                    sourceCoordinate.longitude
-            )
-
-
-        let destinationLocation =
-            CLLocation(
-                latitude:
-                    destinationCoordinate.latitude,
-
-                longitude:
-                    destinationCoordinate.longitude
-            )
-
-
-        /*
-         If two MapKit items are essentially
-         the same coordinate, just skip
-         the meaningless route leg.
-         */
-
-        if sourceLocation.distance(
+        if location(
             from:
-                destinationLocation
-        ) < 10 {
+                source.mapItem
+        )
+        .distance(
+            from:
+                location(
+                    from:
+                        destination.mapItem
+                )
+        )
+        <
+        10 {
 
             buildLeg(
                 endpoints:
                     endpoints,
-
                 index:
                     index + 1,
-
                 travelMode:
                     travelMode,
-
                 generation:
                     generation,
-
                 builtLegs:
                     builtLegs,
-
                 completion:
                     completion
             )
-
 
             return
         }
 
 
-        // MARK: Real MKDirections Request
+        // MARK: POI Request
+
+        requestRoute(
+            from:
+                source.mapItem,
+            to:
+                destination.mapItem,
+            travelMode:
+                travelMode
+        ) {
+            [weak self]
+            route in
+
+
+            guard let self else {
+                return
+            }
+
+
+            guard generation ==
+                    self.generation
+            else {
+
+                return
+            }
+
+
+            if let route {
+
+                self.appendAndContinue(
+                    route:
+                        route,
+                    source:
+                        source,
+                    destination:
+                        destination,
+                    endpoints:
+                        endpoints,
+                    index:
+                        index,
+                    travelMode:
+                        travelMode,
+                    generation:
+                        generation,
+                    builtLegs:
+                        builtLegs,
+                    completion:
+                        completion
+                )
+
+                return
+            }
+
+
+            // MARK: Coordinate Retry
+
+            self.requestRoute(
+                from:
+                    self.routingMapItem(
+                        from:
+                            source.mapItem
+                    ),
+                to:
+                    self.routingMapItem(
+                        from:
+                            destination.mapItem
+                    ),
+                travelMode:
+                    travelMode
+            ) {
+                [weak self]
+                retryRoute in
+
+
+                guard let self else {
+                    return
+                }
+
+
+                if let retryRoute {
+
+                    self.appendAndContinue(
+                        route:
+                            retryRoute,
+                        source:
+                            source,
+                        destination:
+                            destination,
+                        endpoints:
+                            endpoints,
+                        index:
+                            index,
+                        travelMode:
+                            travelMode,
+                        generation:
+                            generation,
+                        builtLegs:
+                            builtLegs,
+                        completion:
+                            completion
+                    )
+
+                    return
+                }
+
+
+                /*
+                 MAJOR CHANGE:
+
+                 Do not delete a real stop.
+                 Do not display a fatal popup.
+                 Do not draw a fake route.
+
+                 Just continue.
+                 */
+
+                print(
+                    """
+                    ⚠️ Final polyline unavailable
+                    \(source.name) → \(destination.name)
+                    The itinerary keeps both places.
+                    """
+                )
+
+
+                self.buildLeg(
+                    endpoints:
+                        endpoints,
+                    index:
+                        index + 1,
+                    travelMode:
+                        travelMode,
+                    generation:
+                        generation,
+                    builtLegs:
+                        builtLegs,
+                    completion:
+                        completion
+                )
+            }
+        }
+    }
+
+
+    // MARK: - Append Route
+
+    private func appendAndContinue(
+        route:
+            MKRoute,
+        source:
+            RouteEndpoint,
+        destination:
+            RouteEndpoint,
+        endpoints:
+            [RouteEndpoint],
+        index:
+            Int,
+        travelMode:
+            TravelMode,
+        generation:
+            Int,
+        builtLegs:
+            [RouteLeg],
+        completion:
+            @escaping (
+                Bool
+            ) -> Void
+    ) {
+
+        let leg =
+            RouteLeg(
+                fromPlaceID:
+                    source.placeID,
+                toPlaceID:
+                    destination.placeID,
+                fromName:
+                    source.name,
+                toName:
+                    destination.name,
+                route:
+                    route
+            )
+
+
+        var updated =
+            builtLegs
+
+
+        updated.append(
+            leg
+        )
+
+
+        buildLeg(
+            endpoints:
+                endpoints,
+            index:
+                index + 1,
+            travelMode:
+                travelMode,
+            generation:
+                generation,
+            builtLegs:
+                updated,
+            completion:
+                completion
+        )
+    }
+
+
+    // MARK: - Request
+
+    private func requestRoute(
+        from source:
+            MKMapItem,
+        to destination:
+            MKMapItem,
+        travelMode:
+            TravelMode,
+        completion:
+            @escaping (
+                MKRoute?
+            ) -> Void
+    ) {
 
         let request =
             MKDirections.Request()
 
 
         request.source =
-            source.mapItem
+            source
 
 
         request.destination =
-            destination.mapItem
+            destination
 
 
         request.transportType =
@@ -383,189 +595,116 @@ final class DirectionsService: ObservableObject {
 
 
         directions.calculate {
-            [weak self]
             response,
             error in
 
 
-            guard let self else {
-                return
-            }
-
-
             DispatchQueue.main.async {
-
-                guard generation ==
-                        self.generation
-                else {
-
-                    return
-                }
-
-
-                // MARK: Error
 
                 if let error {
 
                     print(
                         """
-                        🗺 Final route failed
-                        From: \(source.name)
-                        To: \(destination.name)
-                        Mode: \(travelMode.title)
+                        🗺 Route unavailable
+                        \(source.name ?? "Location")
+                        →
+                        \(destination.name ?? "Location")
                         Error: \(error)
                         """
                     )
 
 
-                    self.errorMessage =
-                        "I built the itinerary, but couldn't get a \(travelMode.title.lowercased()) route from \(source.name) to \(destination.name)."
-
-
-                    self.routeLegs =
-                        builtLegs
-
-
-                    self.isLoading =
-                        false
-
-
-                    completion(
-                        false
-                    )
+                    completion(nil)
 
                     return
                 }
 
 
-                // MARK: Route
-
-                guard let route =
-                        response?
-                            .routes
-                            .first
-                else {
-
-                    self.errorMessage =
-                        "No \(travelMode.title.lowercased()) route was available from \(source.name) to \(destination.name)."
-
-
-                    self.routeLegs =
-                        builtLegs
-
-
-                    self.isLoading =
-                        false
-
-
-                    completion(
-                        false
-                    )
-
-                    return
-                }
-
-
-                let leg =
-                    RouteLeg(
-                        fromPlaceID:
-                            source.placeID,
-
-                        toPlaceID:
-                            destination.placeID,
-
-                        fromName:
-                            source.name,
-
-                        toName:
-                            destination.name,
-
-                        route:
-                            route
-                    )
-
-
-                var updatedLegs =
-                    builtLegs
-
-
-                updatedLegs.append(
-                    leg
-                )
-
-
-                // MARK: Next Leg
-
-                self.buildLeg(
-                    endpoints:
-                        endpoints,
-
-                    index:
-                        index + 1,
-
-                    travelMode:
-                        travelMode,
-
-                    generation:
-                        generation,
-
-                    builtLegs:
-                        updatedLegs,
-
-                    completion:
-                        completion
+                completion(
+                    response?
+                        .routes
+                        .first
                 )
             }
         }
     }
 
 
-    // MARK: - Current Location Map Item
+    // MARK: - Routing Map Item
 
-    private func makeMapItem(
+    private func routingMapItem(
+        from item: MKMapItem
+    ) -> MKMapItem {
+
+        let coordinate =
+            item.halfwayCoordinate
+
+
+        let result =
+            makeLocationMapItem(
+                for:
+                    CLLocation(
+                        latitude:
+                            coordinate.latitude,
+                        longitude:
+                            coordinate.longitude
+                    )
+            )
+
+
+        result.name =
+            item.name
+
+
+        return result
+    }
+
+
+    // MARK: - Location Map Item
+
+    private func makeLocationMapItem(
         for location: CLLocation
     ) -> MKMapItem {
 
-        if #available(iOS 26.0, *) {
+        if #available(
+            iOS 26.0,
+            *
+        ) {
 
-            let item =
-                MKMapItem(
-                    location:
-                        location,
-
-                    address:
-                        nil
-                )
-
-
-            item.name =
-                "Current Location"
-
-
-            return item
+            return MKMapItem(
+                location:
+                    location,
+                address:
+                    nil
+            )
 
         } else {
 
-            let placemark =
-                MKPlacemark(
-                    coordinate:
-                        location.coordinate
-                )
-
-
-            let item =
-                MKMapItem(
-                    placemark:
-                        placemark
-                )
-
-
-            item.name =
-                "Current Location"
-
-
-            return item
+            return MKMapItem(
+                placemark:
+                    MKPlacemark(
+                        coordinate:
+                            location.coordinate
+                    )
+            )
         }
+    }
+
+
+    private func location(
+        from item: MKMapItem
+    ) -> CLLocation {
+
+        let coordinate =
+            item.halfwayCoordinate
+
+
+        return CLLocation(
+            latitude:
+                coordinate.latitude,
+            longitude:
+                coordinate.longitude
+        )
     }
 
 

@@ -7,22 +7,32 @@ struct ItineraryResultView: View {
 
     // MARK: - Data
 
-    let itinerary: GeneratedItinerary
-
-    let routeLegs: [RouteLeg]
-
-    let totalTravelTime: TimeInterval
-
-    let totalDistance: CLLocationDistance
-
-    let travelMode: TravelMode
-
-    let hasCurrentLocation: Bool
+    let itinerary:
+        GeneratedItinerary
 
 
-    // MARK: - Actions
+    let routeLegs:
+        [RouteLeg]
 
-    let onEdit: () -> Void
+
+    let totalTravelTime:
+        TimeInterval
+
+
+    let totalDistance:
+        CLLocationDistance
+
+
+    let travelMode:
+        TravelMode
+
+
+    let hasCurrentLocation:
+        Bool
+
+
+    let onEdit:
+        () -> Void
 
 
     // MARK: - Environment
@@ -40,8 +50,10 @@ struct ItineraryResultView: View {
             ScrollView {
 
                 VStack(
-                    alignment: .leading,
-                    spacing: 24
+                    alignment:
+                        .leading,
+                    spacing:
+                        24
                 ) {
 
                     heroSection
@@ -52,16 +64,30 @@ struct ItineraryResultView: View {
 
                     bottomActions
                 }
-                .padding(.horizontal, 20)
-                .padding(.top, 18)
-                .padding(.bottom, 40)
+                .padding(
+                    .horizontal,
+                    20
+                )
+                .padding(
+                    .top,
+                    18
+                )
+                .padding(
+                    .bottom,
+                    40
+                )
             }
-            .navigationTitle("Your Day")
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationTitle(
+                "Your Day"
+            )
+            .navigationBarTitleDisplayMode(
+                .inline
+            )
             .toolbar {
 
                 ToolbarItem(
-                    placement: .topBarTrailing
+                    placement:
+                        .topBarTrailing
                 ) {
 
                     Button("Done") {
@@ -76,77 +102,144 @@ struct ItineraryResultView: View {
 
     // MARK: - Hero
 
-    private var heroSection: some View {
+    private var heroSection:
+        some View {
 
         VStack(
-            alignment: .leading,
-            spacing: 8
+            alignment:
+                .leading,
+            spacing:
+                8
         ) {
 
-            HStack(spacing: 8) {
+            HStack(
+                spacing:
+                    8
+            ) {
 
                 Image(
-                    systemName: "wand.and.stars"
+                    systemName:
+                        "wand.and.stars"
                 )
 
-                Text("Halfway built your route")
-                    .font(
-                        .title2.bold()
-                    )
+
+                Text(
+                    "Halfway built your day"
+                )
+                .font(
+                    .title2.bold()
+                )
             }
 
 
-            Text(
-                "\(itinerary.orderedPlaces.count) stops arranged around your route."
-            )
-            .font(.subheadline)
-            .foregroundStyle(.secondary)
+            if let finish =
+                itinerary
+                    .estimatedFinishTime {
+
+                Text(
+                    "Estimated finish: \(formatClock(finish))"
+                )
+                .font(
+                    .subheadline
+                )
+                .foregroundStyle(
+                    .secondary
+                )
+            }
+
+
+            if itinerary
+                .hasTimingConflicts {
+
+                Label(
+                    "One or more stops fall outside your preferred time.",
+                    systemImage:
+                        "exclamationmark.triangle"
+                )
+                .font(
+                    .caption
+                )
+                .foregroundStyle(
+                    .secondary
+                )
+            }
         }
     }
 
 
     // MARK: - Summary
 
-    private var summaryCard: some View {
+    private var summaryCard:
+        some View {
 
-        HStack(spacing: 0) {
+        HStack(
+            spacing:
+                0
+        ) {
 
             summaryMetric(
-                icon: travelMode.icon,
-                value: formatTime(totalTravelTime),
-                label: "Travel"
+                icon:
+                    travelMode.icon,
+                value:
+                    formatTime(
+                        totalTravelTime
+                    ),
+                label:
+                    "Travel"
             )
 
 
             Divider()
-                .frame(height: 46)
+                .frame(
+                    height:
+                        46
+                )
 
 
             summaryMetric(
-                icon: "point.topleft.down.to.point.bottomright.curvepath",
-                value: formatDistance(totalDistance),
-                label: "Distance"
+                icon:
+                    "point.topleft.down.to.point.bottomright.curvepath",
+                value:
+                    formatDistance(
+                        totalDistance
+                    ),
+                label:
+                    "Distance"
             )
 
 
             Divider()
-                .frame(height: 46)
+                .frame(
+                    height:
+                        46
+                )
 
 
             summaryMetric(
-                icon: "mappin.and.ellipse",
-                value: "\(itinerary.orderedPlaces.count)",
-                label: "Stops"
+                icon:
+                    "mappin.and.ellipse",
+                value:
+                    "\(itinerary.orderedPlaces.count)",
+                label:
+                    "Stops"
             )
         }
-        .padding(.vertical, 18)
+        .padding(
+            .vertical,
+            18
+        )
         .background(
-            Color.primary.opacity(0.055)
+            Color.primary
+                .opacity(
+                    0.055
+                )
         )
         .clipShape(
             RoundedRectangle(
-                cornerRadius: 20,
-                style: .continuous
+                cornerRadius:
+                    20,
+                style:
+                    .continuous
             )
         )
     }
@@ -158,65 +251,93 @@ struct ItineraryResultView: View {
         label: String
     ) -> some View {
 
-        VStack(spacing: 5) {
+        VStack(
+            spacing:
+                5
+        ) {
 
             Image(
-                systemName: icon
+                systemName:
+                    icon
             )
-            .font(.headline)
+            .font(
+                .headline
+            )
 
 
-            Text(value)
-                .font(
-                    .subheadline.bold()
-                )
+            Text(
+                value
+            )
+            .font(
+                .subheadline.bold()
+            )
 
 
-            Text(label)
-                .font(.caption2)
-                .foregroundStyle(.secondary)
+            Text(
+                label
+            )
+            .font(
+                .caption2
+            )
+            .foregroundStyle(
+                .secondary
+            )
         }
         .frame(
-            maxWidth: .infinity
+            maxWidth:
+                .infinity
         )
     }
 
 
     // MARK: - Itinerary
 
-    private var itinerarySection: some View {
+    private var itinerarySection:
+        some View {
 
         VStack(
-            alignment: .leading,
-            spacing: 0
+            alignment:
+                .leading,
+            spacing:
+                0
         ) {
 
-            Text("ITINERARY")
-                .font(
-                    .caption.bold()
-                )
-                .foregroundStyle(.secondary)
-                .padding(.bottom, 16)
+            Text(
+                "ITINERARY"
+            )
+            .font(
+                .caption.bold()
+            )
+            .foregroundStyle(
+                .secondary
+            )
+            .padding(
+                .bottom,
+                16
+            )
 
 
-            // MARK: Current Location
+            // MARK: Start
 
             if hasCurrentLocation {
 
                 startLocationRow
 
 
-                if let firstLeg =
-                    routeLegForFirstStop {
+                if let first =
+                    itinerary
+                        .orderedPlaces
+                        .first {
 
-                    connector(
-                        leg: firstLeg
+                    routeConnector(
+                        to:
+                            first
                     )
                 }
             }
 
 
-            // MARK: Stops
+            // MARK: Places
 
             ForEach(
                 Array(
@@ -224,87 +345,111 @@ struct ItineraryResultView: View {
                         .orderedPlaces
                         .enumerated()
                 ),
-                id: \.element.id
-            ) { index, place in
+                id:
+                    \.element.id
+            ) {
+                index,
+                place in
+
 
                 placeRow(
-                    place: place,
-                    number: index + 1
+                    place:
+                        place,
+                    number:
+                        index + 1
                 )
 
 
                 if index <
-                    itinerary.orderedPlaces.count - 1 {
+                    itinerary
+                        .orderedPlaces
+                        .count
+                    -
+                    1 {
 
-                    if let leg =
-                        routeLeg(
-                            to:
-                                itinerary
-                                    .orderedPlaces[
-                                        index + 1
-                                    ]
-                        ) {
+                    let next =
+                        itinerary
+                            .orderedPlaces[
+                                index + 1
+                            ]
 
-                        connector(
-                            leg: leg
-                        )
 
-                    } else {
-
-                        emptyConnector
-                    }
+                    routeConnector(
+                        to:
+                            next
+                    )
                 }
             }
         }
     }
 
 
-    // MARK: - Current Location Row
+    // MARK: - Start Row
 
-    private var startLocationRow: some View {
+    private var startLocationRow:
+        some View {
 
         HStack(
-            alignment: .top,
-            spacing: 14
+            alignment:
+                .top,
+            spacing:
+                14
         ) {
 
             ZStack {
 
                 Circle()
                     .fill(
-                        Color.primary.opacity(0.09)
+                        Color.primary
+                            .opacity(
+                                0.09
+                            )
                     )
                     .frame(
-                        width: 42,
-                        height: 42
+                        width:
+                            42,
+                        height:
+                            42
                     )
 
 
                 Image(
-                    systemName: "location.fill"
+                    systemName:
+                        "location.fill"
                 )
-                .font(.system(size: 16))
             }
 
 
             VStack(
-                alignment: .leading,
-                spacing: 3
+                alignment:
+                    .leading,
+                spacing:
+                    3
             ) {
 
-                Text("Start")
-                    .font(
-                        .caption
-                            .weight(.semibold)
-                    )
-                    .foregroundStyle(.secondary)
+                Text(
+                    "Start"
+                )
+                .font(
+                    .caption
+                        .weight(
+                            .semibold
+                        )
+                )
+                .foregroundStyle(
+                    .secondary
+                )
 
 
-                Text("Current Location")
-                    .font(
-                        .body
-                            .weight(.semibold)
-                    )
+                Text(
+                    "Current Location"
+                )
+                .font(
+                    .body
+                        .weight(
+                            .semibold
+                        )
+                )
             }
 
 
@@ -316,19 +461,31 @@ struct ItineraryResultView: View {
     // MARK: - Place Row
 
     private func placeRow(
-        place: PlannedPlace,
-        number: Int
+        place:
+            PlannedPlace,
+        number:
+            Int
     ) -> some View {
 
         let resolved =
             resolvedStop(
-                for: place
+                for:
+                    place
+            )
+
+
+        let scheduled =
+            scheduledStop(
+                for:
+                    place
             )
 
 
         return HStack(
-            alignment: .top,
-            spacing: 14
+            alignment:
+                .top,
+            spacing:
+                14
         ) {
 
             ZStack {
@@ -338,8 +495,10 @@ struct ItineraryResultView: View {
                         Color.accentColor
                     )
                     .frame(
-                        width: 42,
-                        height: 42
+                        width:
+                            42,
+                        height:
+                            42
                     )
 
 
@@ -348,45 +507,74 @@ struct ItineraryResultView: View {
                 )
                 .font(
                     .system(
-                        size: 14,
-                        weight: .bold
+                        size:
+                            14,
+                        weight:
+                            .bold
                     )
                 )
-                .foregroundStyle(.white)
+                .foregroundStyle(
+                    .white
+                )
             }
 
 
             VStack(
-                alignment: .leading,
-                spacing: 5
+                alignment:
+                    .leading,
+                spacing:
+                    6
             ) {
 
-                Text(place.name)
-                    .font(
-                        .body.weight(.semibold)
+                if let scheduled {
+
+                    Text(
+                        formatClock(
+                            scheduled
+                                .startTime
+                        )
                     )
+                    .font(
+                        .caption.bold()
+                    )
+                    .foregroundStyle(
+                        .secondary
+                    )
+                }
+
+
+                Text(
+                    place.name
+                )
+                .font(
+                    .body
+                        .weight(
+                            .semibold
+                        )
+                )
 
 
                 if let resolved {
 
-                    flexibleStopDescription(
-                        resolved
+                    flexibleDescription(
+                        resolved,
+                        scheduled:
+                            scheduled
                     )
 
                 } else {
 
-                    HStack(spacing: 5) {
-
-                        Image(
-                            systemName: "heart.fill"
-                        )
-                        .font(.caption2)
-
-
-                        Text("Must visit")
-                            .font(.caption)
-                    }
-                    .foregroundStyle(.secondary)
+                    Label(
+                        "Must visit",
+                        systemImage:
+                            "heart.fill"
+                    )
+                    .font(
+                        .caption
+                    )
+                    .foregroundStyle(
+                        .secondary
+                    )
                 }
 
 
@@ -398,10 +586,18 @@ struct ItineraryResultView: View {
 
                 if !address.isEmpty {
 
-                    Text(address)
-                        .font(.caption)
-                        .foregroundStyle(.tertiary)
-                        .lineLimit(2)
+                    Text(
+                        address
+                    )
+                    .font(
+                        .caption
+                    )
+                    .foregroundStyle(
+                        .tertiary
+                    )
+                    .lineLimit(
+                        2
+                    )
                 }
             }
 
@@ -411,18 +607,26 @@ struct ItineraryResultView: View {
     }
 
 
-    // MARK: - Flexible Stop Description
+    // MARK: - Flexible Description
 
-    private func flexibleStopDescription(
-        _ resolved: ResolvedFlexibleStop
+    private func flexibleDescription(
+        _ resolved:
+            ResolvedFlexibleStop,
+        scheduled:
+            ScheduledStop?
     ) -> some View {
 
         VStack(
-            alignment: .leading,
-            spacing: 4
+            alignment:
+                .leading,
+            spacing:
+                4
         ) {
 
-            HStack(spacing: 5) {
+            HStack(
+                spacing:
+                    5
+            ) {
 
                 Image(
                     systemName:
@@ -431,7 +635,9 @@ struct ItineraryResultView: View {
                             .category
                             .icon
                 )
-                .font(.caption2)
+                .font(
+                    .caption2
+                )
 
 
                 Text(
@@ -442,7 +648,9 @@ struct ItineraryResultView: View {
                 )
                 .font(
                     .caption
-                        .weight(.medium)
+                        .weight(
+                            .medium
+                        )
                 )
 
 
@@ -461,96 +669,234 @@ struct ItineraryResultView: View {
                     Text("•")
 
                     Text(query)
-                        .font(.caption)
+                        .font(
+                            .caption
+                        )
                 }
             }
-            .foregroundStyle(.secondary)
+            .foregroundStyle(
+                .secondary
+            )
 
 
-            HStack(spacing: 5) {
+            if let scheduled,
+               let timing =
+                scheduled
+                    .requestedTiming {
 
-                Image(
-                    systemName:
+                timingStatusRow(
+                    scheduled:
+                        scheduled,
+                    timing:
+                        timing
+                )
+            }
+
+
+            if resolved
+                .addedTravelTime
+                >
+                0.5 {
+
+                Label(
+                    "About +\(formatTime(resolved.addedTravelTime)) travel",
+                    systemImage:
                         "arrow.triangle.branch"
                 )
-                .font(.system(size: 9))
-
-
-                Text(
-                    "About +\(formatTime(resolved.addedTravelTime)) of travel"
+                .font(
+                    .caption2
                 )
-                .font(.caption2)
+                .foregroundStyle(
+                    .tertiary
+                )
+
+            } else {
+
+                Label(
+                    "Best nearby match",
+                    systemImage:
+                        "location.magnifyingglass"
+                )
+                .font(
+                    .caption2
+                )
+                .foregroundStyle(
+                    .tertiary
+                )
             }
-            .foregroundStyle(.tertiary)
         }
     }
 
 
-    // MARK: - Connector
+    // MARK: - Timing
+
+    @ViewBuilder
+    private func timingStatusRow(
+        scheduled:
+            ScheduledStop,
+        timing:
+            String
+    ) -> some View {
+
+        switch scheduled
+            .timingStatus {
+
+        case .noPreference:
+
+            EmptyView()
+
+
+        case .fitsPreference:
+
+            Label(
+                "\(timing) • fits",
+                systemImage:
+                    "checkmark.circle.fill"
+            )
+            .font(
+                .caption2
+            )
+            .foregroundStyle(
+                .secondary
+            )
+
+
+        case .waitedForPreference:
+
+            Label(
+                "\(timing) • planned for \(formatClock(scheduled.startTime))",
+                systemImage:
+                    "clock.badge.checkmark"
+            )
+            .font(
+                .caption2
+            )
+            .foregroundStyle(
+                .secondary
+            )
+
+
+        case .outsidePreference:
+
+            Label(
+                "\(timing) requested • \(formatClock(scheduled.startTime))",
+                systemImage:
+                    "exclamationmark.triangle"
+            )
+            .font(
+                .caption2
+            )
+            .foregroundStyle(
+                .secondary
+            )
+        }
+    }
+
+
+    // MARK: - Route Connector
+
+    @ViewBuilder
+    private func routeConnector(
+        to place:
+            PlannedPlace
+    ) -> some View {
+
+        if let leg =
+            routeLeg(
+                to:
+                    place
+            ) {
+
+            connector(
+                leg:
+                    leg
+            )
+
+        } else {
+
+            routeUnavailableConnector
+        }
+    }
+
 
     private func connector(
-        leg: RouteLeg
+        leg:
+            RouteLeg
     ) -> some View {
 
         HStack(
-            alignment: .center,
-            spacing: 14
+            spacing:
+                14
         ) {
 
-            VStack(spacing: 0) {
+            VStack(
+                spacing:
+                    0
+            ) {
 
                 Rectangle()
                     .fill(
-                        Color.secondary.opacity(0.25)
+                        Color.secondary
+                            .opacity(
+                                0.25
+                            )
                     )
                     .frame(
-                        width: 2,
-                        height: 13
+                        width:
+                            2,
+                        height:
+                            13
                     )
 
 
                 Image(
-                    systemName: travelMode.icon
+                    systemName:
+                        travelMode.icon
                 )
                 .font(
-                    .system(size: 11)
+                    .system(
+                        size:
+                            11
+                    )
                 )
-                .foregroundStyle(.secondary)
-                .padding(.vertical, 5)
+                .foregroundStyle(
+                    .secondary
+                )
+                .padding(
+                    .vertical,
+                    5
+                )
 
 
                 Rectangle()
                     .fill(
-                        Color.secondary.opacity(0.25)
+                        Color.secondary
+                            .opacity(
+                                0.25
+                            )
                     )
                     .frame(
-                        width: 2,
-                        height: 13
+                        width:
+                            2,
+                        height:
+                            13
                     )
             }
-            .frame(width: 42)
+            .frame(
+                width:
+                    42
+            )
 
 
-            HStack {
-
-                Text(
-                    formatTime(
-                        leg.travelTime
-                    )
-                )
-
-
-                Text("•")
-
-
-                Text(
-                    formatDistance(
-                        leg.distance
-                    )
-                )
-            }
-            .font(.caption)
-            .foregroundStyle(.secondary)
+            Text(
+                "\(formatTime(leg.travelTime))  •  \(formatDistance(leg.distance))"
+            )
+            .font(
+                .caption
+            )
+            .foregroundStyle(
+                .secondary
+            )
 
 
             Spacer()
@@ -558,19 +904,79 @@ struct ItineraryResultView: View {
     }
 
 
-    private var emptyConnector: some View {
+    private var routeUnavailableConnector:
+        some View {
 
-        HStack(spacing: 14) {
+        HStack(
+            spacing:
+                14
+        ) {
 
-            Rectangle()
-                .fill(
-                    Color.secondary.opacity(0.2)
+            VStack(
+                spacing:
+                    0
+            ) {
+
+                Rectangle()
+                    .fill(
+                        Color.secondary
+                            .opacity(
+                                0.18
+                            )
+                    )
+                    .frame(
+                        width:
+                            2,
+                        height:
+                            12
+                    )
+
+
+                Image(
+                    systemName:
+                        "ellipsis"
                 )
-                .frame(
-                    width: 2,
-                    height: 32
+                .font(
+                    .caption2
                 )
-                .frame(width: 42)
+                .foregroundStyle(
+                    .tertiary
+                )
+                .padding(
+                    .vertical,
+                    4
+                )
+
+
+                Rectangle()
+                    .fill(
+                        Color.secondary
+                            .opacity(
+                                0.18
+                            )
+                    )
+                    .frame(
+                        width:
+                            2,
+                        height:
+                            12
+                    )
+            }
+            .frame(
+                width:
+                    42
+            )
+
+
+            Text(
+                "Route details unavailable"
+            )
+            .font(
+                .caption
+            )
+            .foregroundStyle(
+                .tertiary
+            )
 
 
             Spacer()
@@ -578,11 +984,15 @@ struct ItineraryResultView: View {
     }
 
 
-    // MARK: - Actions
+    // MARK: - Bottom
 
-    private var bottomActions: some View {
+    private var bottomActions:
+        some View {
 
-        VStack(spacing: 10) {
+        VStack(
+            spacing:
+                10
+        ) {
 
             Button {
 
@@ -594,19 +1004,24 @@ struct ItineraryResultView: View {
 
                     Spacer()
 
-
                     Image(
-                        systemName: "map.fill"
+                        systemName:
+                            "map.fill"
                     )
 
-
-                    Text("View on Map")
-                        .font(.headline)
-
+                    Text(
+                        "View on Map"
+                    )
+                    .font(
+                        .headline
+                    )
 
                     Spacer()
                 }
-                .padding(.vertical, 14)
+                .padding(
+                    .vertical,
+                    14
+                )
             }
             .buttonStyle(
                 .borderedProminent
@@ -618,13 +1033,16 @@ struct ItineraryResultView: View {
                 dismiss()
 
 
-                DispatchQueue.main.asyncAfter(
-                    deadline:
-                        .now() + 0.25
-                ) {
+                DispatchQueue.main
+                    .asyncAfter(
+                        deadline:
+                            .now()
+                            +
+                            0.25
+                    ) {
 
-                    onEdit()
-                }
+                        onEdit()
+                    }
 
             } label: {
 
@@ -632,29 +1050,37 @@ struct ItineraryResultView: View {
 
                     Spacer()
 
-
                     Image(
-                        systemName: "pencil"
+                        systemName:
+                            "pencil"
                     )
 
-
-                    Text("Edit Plan")
-                        .font(.headline)
-
+                    Text(
+                        "Edit Plan"
+                    )
+                    .font(
+                        .headline
+                    )
 
                     Spacer()
                 }
-                .padding(.vertical, 14)
+                .padding(
+                    .vertical,
+                    14
+                )
             }
-            .buttonStyle(.bordered)
+            .buttonStyle(
+                .bordered
+            )
         }
     }
 
 
-    // MARK: - Resolved Stop Lookup
+    // MARK: - Lookups
 
     private func resolvedStop(
-        for place: PlannedPlace
+        for place:
+            PlannedPlace
     ) -> ResolvedFlexibleStop? {
 
         itinerary
@@ -667,33 +1093,24 @@ struct ItineraryResultView: View {
     }
 
 
-    // MARK: - Route Lookup
+    private func scheduledStop(
+        for place:
+            PlannedPlace
+    ) -> ScheduledStop? {
 
-    private var routeLegForFirstStop:
-        RouteLeg? {
+        itinerary
+            .scheduledStops
+            .first {
 
-        guard let firstPlace =
-                itinerary
-                    .orderedPlaces
-                    .first
-        else {
-
-            return nil
-        }
-
-
-        return routeLegs.first {
-
-            $0.toPlaceID ==
-                firstPlace.id
-            &&
-            $0.fromPlaceID == nil
-        }
+                $0.place.id ==
+                    place.id
+            }
     }
 
 
     private func routeLeg(
-        to place: PlannedPlace
+        to place:
+            PlannedPlace
     ) -> RouteLeg? {
 
         routeLegs.first {
@@ -706,8 +1123,23 @@ struct ItineraryResultView: View {
 
     // MARK: - Formatting
 
+    private func formatClock(
+        _ date:
+            Date
+    ) -> String {
+
+        date.formatted(
+            date:
+                .omitted,
+            time:
+                .shortened
+        )
+    }
+
+
     private func formatTime(
-        _ seconds: TimeInterval
+        _ seconds:
+            TimeInterval
     ) -> String {
 
         let minutes =
@@ -746,7 +1178,8 @@ struct ItineraryResultView: View {
 
 
     private func formatDistance(
-        _ meters: CLLocationDistance
+        _ meters:
+            CLLocationDistance
     ) -> String {
 
         if meters < 1000 {
@@ -756,7 +1189,8 @@ struct ItineraryResultView: View {
 
 
         return String(
-            format: "%.1f km",
+            format:
+                "%.1f km",
             meters / 1000
         )
     }

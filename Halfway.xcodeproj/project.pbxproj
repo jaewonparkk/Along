@@ -6,13 +6,31 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		5313B1E230310607008B6A96 /* GooglePlaces in Frameworks */ = {isa = PBXBuildFile; productRef = 5313B1E130310607008B6A96 /* GooglePlaces */; };
+		5313B1E430310607008B6A96 /* GooglePlacesSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 5313B1E330310607008B6A96 /* GooglePlacesSwift */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		5313B1AD303032E6008B6A96 /* Halfway.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Halfway.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		5313B1E630310763008B6A96 /* Exceptions for "Halfway" folder in "Halfway" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 5313B1AC303032E6008B6A96 /* Halfway */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		5313B1AF303032E6008B6A96 /* Halfway */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				5313B1E630310763008B6A96 /* Exceptions for "Halfway" folder in "Halfway" target */,
+			);
 			path = Halfway;
 			sourceTree = "<group>";
 		};
@@ -23,6 +41,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5313B1E230310607008B6A96 /* GooglePlaces in Frameworks */,
+				5313B1E430310607008B6A96 /* GooglePlacesSwift in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -65,6 +85,8 @@
 			);
 			name = Halfway;
 			packageProductDependencies = (
+				5313B1E130310607008B6A96 /* GooglePlaces */,
+				5313B1E330310607008B6A96 /* GooglePlacesSwift */,
 			);
 			productName = Halfway;
 			productReference = 5313B1AD303032E6008B6A96 /* Halfway.app */;
@@ -94,6 +116,9 @@
 			);
 			mainGroup = 5313B1A4303032E6008B6A96;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				5313B1E030310607008B6A96 /* XCRemoteSwiftPackageReference "ios-places-sdk" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 5313B1AE303032E6008B6A96 /* Products */;
 			projectDirPath = "";
@@ -256,6 +281,7 @@
 				DEVELOPMENT_TEAM = P4Z32Y347P;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Halfway/Info.plist;
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Halfway uses your location to find nearby places and plan fair meetup routes.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -289,6 +315,7 @@
 				DEVELOPMENT_TEAM = P4Z32Y347P;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Halfway/Info.plist;
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Halfway uses your location to find nearby places and plan fair meetup routes.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -334,6 +361,30 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		5313B1E030310607008B6A96 /* XCRemoteSwiftPackageReference "ios-places-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/googlemaps/ios-places-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 11.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		5313B1E130310607008B6A96 /* GooglePlaces */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5313B1E030310607008B6A96 /* XCRemoteSwiftPackageReference "ios-places-sdk" */;
+			productName = GooglePlaces;
+		};
+		5313B1E330310607008B6A96 /* GooglePlacesSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5313B1E030310607008B6A96 /* XCRemoteSwiftPackageReference "ios-places-sdk" */;
+			productName = GooglePlacesSwift;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 5313B1A5303032E6008B6A96 /* Project object */;
 }
