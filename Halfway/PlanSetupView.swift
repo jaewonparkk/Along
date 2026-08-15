@@ -5,24 +5,39 @@ import CoreLocation
 
 struct PlanSetupView: View {
 
+    // MARK: - Data
+
     @Binding
     var plan: PlanRequest
 
+
     @ObservedObject
-    var searchService: PlaceSearchService
+    var searchService:
+        PlaceSearchService
 
-    let userLocation: CLLocation?
 
-    let onBuild: () -> Void
+    let userLocation:
+        CLLocation?
 
+
+    let onBuild:
+        () -> Void
+
+
+    // MARK: - Environment
 
     @Environment(\.dismiss)
     private var dismiss
 
 
-    @State
-    private var isAddingAnchor = false
+    // MARK: - UI
 
+    @State
+    private var isAddingAnchor =
+        false
+
+
+    // MARK: - Body
 
     var body: some View {
 
@@ -30,342 +45,13 @@ struct PlanSetupView: View {
 
             Form {
 
-                // MARK: - Must Visit
+                mustVisitSection
 
-                Section {
+                flexibleStopsSection
 
-                    if plan.anchors.isEmpty {
+                todaysStyleSection
 
-                        VStack(
-                            alignment: .leading,
-                            spacing: 6
-                        ) {
-
-                            Text("No fixed places yet")
-                                .font(
-                                    .subheadline.weight(
-                                        .medium
-                                    )
-                                )
-
-                            Text(
-                                "Add somewhere you definitely want to visit."
-                            )
-                            .font(.caption)
-                            .foregroundStyle(
-                                .secondary
-                            )
-                        }
-                        .padding(
-                            .vertical,
-                            4
-                        )
-
-                    } else {
-
-                        ForEach(
-                            Array(
-                                plan.anchors.enumerated()
-                            ),
-                            id: \.element.id
-                        ) {
-                            index,
-                            anchor in
-
-                            anchorRow(
-                                anchor,
-                                index: index
-                            )
-                        }
-                    }
-
-
-                    Button {
-
-                        isAddingAnchor = true
-
-                    } label: {
-
-                        Label(
-                            "Add a place",
-                            systemImage:
-                                "plus.circle.fill"
-                        )
-                    }
-
-                } header: {
-
-                    Label(
-                        "Must Visit",
-                        systemImage:
-                            "heart.fill"
-                    )
-
-                } footer: {
-
-                    Text(
-                        "These are specific places you already know you want to visit."
-                    )
-                }
-
-
-                // MARK: - Flexible Stops
-
-                Section {
-
-                    if plan.flexibleStops.isEmpty {
-
-                        VStack(
-                            alignment: .leading,
-                            spacing: 6
-                        ) {
-
-                            Text(
-                                "Nothing flexible yet"
-                            )
-                            .font(
-                                .subheadline.weight(
-                                    .medium
-                                )
-                            )
-
-
-                            Text(
-                                "Add things like lunch, coffee, dessert, or an activity. Halfway will choose the actual place later."
-                            )
-                            .font(.caption)
-                            .foregroundStyle(
-                                .secondary
-                            )
-                        }
-                        .padding(
-                            .vertical,
-                            4
-                        )
-
-                    } else {
-
-                        ForEach(
-                            $plan.flexibleStops
-                        ) {
-                            $stop in
-
-                            flexibleStopRow(
-                                stop: $stop
-                            )
-                        }
-                    }
-
-
-                    Menu {
-
-                        ForEach(
-                            FlexibleStopCategory
-                                .allCases
-                        ) {
-                            category in
-
-                            Button {
-
-                                addFlexibleStop(
-                                    category
-                                )
-
-                            } label: {
-
-                                Label(
-                                    category.title,
-                                    systemImage:
-                                        category.icon
-                                )
-                            }
-                        }
-
-                    } label: {
-
-                        Label(
-                            "Add something",
-                            systemImage:
-                                "plus.circle.fill"
-                        )
-                    }
-
-                } header: {
-
-                    Label(
-                        "I Also Want To...",
-                        systemImage:
-                            "sparkles"
-                    )
-
-                } footer: {
-
-                    Text(
-                        "You choose what you want to do. The planning engine will later find the real place that best fits the route."
-                    )
-                }
-
-
-                // MARK: - Preferences
-
-                Section {
-
-                    Picker(
-                        "Start with",
-                        selection:
-                            $plan
-                                .intent
-                                .startPreference
-                    ) {
-
-                        ForEach(
-                            StartPreference
-                                .allCases
-                        ) {
-                            preference in
-
-                            Text(
-                                preference.title
-                            )
-                            .tag(
-                                preference
-                            )
-                        }
-                    }
-
-
-                    preferenceDescription(
-                        plan.intent
-                            .startPreference
-                            .subtitle
-                    )
-
-
-                    Picker(
-                        "Optimize for",
-                        selection:
-                            $plan
-                                .intent
-                                .optimizationGoal
-                    ) {
-
-                        ForEach(
-                            OptimizationGoal
-                                .allCases
-                        ) {
-                            goal in
-
-                            Text(
-                                goal.title
-                            )
-                            .tag(goal)
-                        }
-                    }
-
-
-                    preferenceDescription(
-                        plan.intent
-                            .optimizationGoal
-                            .subtitle
-                    )
-
-                } header: {
-
-                    Label(
-                        "Today's Style",
-                        systemImage:
-                            "slider.horizontal.3"
-                    )
-                }
-
-
-                // MARK: - Current Plan Summary
-
-                Section {
-
-                    HStack {
-
-                        Label(
-                            "Fixed places",
-                            systemImage:
-                                "mappin.circle.fill"
-                        )
-
-                        Spacer()
-
-                        Text(
-                            "\(plan.anchors.count)"
-                        )
-                        .foregroundStyle(
-                            .secondary
-                        )
-                    }
-
-
-                    HStack {
-
-                        Label(
-                            "Flexible stops",
-                            systemImage:
-                                "wand.and.stars"
-                        )
-
-                        Spacer()
-
-                        Text(
-                            "\(plan.flexibleStops.count)"
-                        )
-                        .foregroundStyle(
-                            .secondary
-                        )
-                    }
-
-
-                    HStack {
-
-                        Label(
-                            "Start",
-                            systemImage:
-                                "play.fill"
-                        )
-
-                        Spacer()
-
-                        Text(
-                            plan.intent
-                                .startPreference
-                                .title
-                        )
-                        .foregroundStyle(
-                            .secondary
-                        )
-                    }
-
-
-                    HStack {
-
-                        Label(
-                            "Goal",
-                            systemImage:
-                                "scope"
-                        )
-
-                        Spacer()
-
-                        Text(
-                            plan.intent
-                                .optimizationGoal
-                                .title
-                        )
-                        .foregroundStyle(
-                            .secondary
-                        )
-                    }
-
-                } header: {
-
-                    Text("Plan Summary")
-                }
+                planSummarySection
             }
             .navigationTitle(
                 "Plan Your Day"
@@ -421,120 +107,179 @@ struct PlanSetupView: View {
     }
 
 
-    // MARK: - Anchor Row
+    // MARK: - Must Visit Section
 
-    private func anchorRow(
-        _ anchor: AnchorStop,
-        index: Int
-    ) -> some View {
+    private var mustVisitSection:
+        some View {
 
-        HStack(
-            spacing: 12
-        ) {
+        Section {
 
-            ZStack {
+            if plan.anchors.isEmpty {
 
-                Circle()
-                    .fill(
-                        Color.accentColor
+                VStack(
+                    alignment: .leading,
+                    spacing: 6
+                ) {
+
+                    Text(
+                        "No fixed places yet"
                     )
-                    .frame(
-                        width: 30,
-                        height: 30
+                    .font(
+                        .subheadline
+                            .weight(.medium)
                     )
 
 
-                Text(
-                    "\(index + 1)"
-                )
-                .font(
-                    .system(
-                        size: 12,
-                        weight: .bold
+                    Text(
+                        "Add anywhere you definitely want to visit."
                     )
-                )
-                .foregroundStyle(
-                    .white
-                )
-            }
-
-
-            VStack(
-                alignment: .leading,
-                spacing: 3
-            ) {
-
-                Text(
-                    anchor.place.name
-                )
-                .font(
-                    .body.weight(
-                        .medium
+                    .font(.caption)
+                    .foregroundStyle(
+                        .secondary
                     )
+                }
+                .padding(
+                    .vertical,
+                    4
                 )
 
+            } else {
 
-                let address =
-                    anchor
-                        .place
-                        .mapItem
-                        .halfwayAddressText
+                ForEach(
+                    Array(
+                        plan
+                            .anchors
+                            .enumerated()
+                    ),
+                    id: \.element.id
+                ) {
+                    index,
+                    anchor in
 
-
-                if !address.isEmpty {
-
-                    Text(address)
-                        .font(
-                            .caption
-                        )
-                        .foregroundStyle(
-                            .secondary
-                        )
-                        .lineLimit(1)
+                    anchorRow(
+                        anchor,
+                        index:
+                            index
+                    )
                 }
             }
 
 
-            Spacer()
-
-
             Button {
 
-                removeAnchor(
-                    anchor
-                )
+                isAddingAnchor =
+                    true
 
             } label: {
 
-                Image(
-                    systemName:
-                        "xmark.circle.fill"
-                )
-                .foregroundStyle(
-                    .secondary
+                Label(
+                    "Add a place",
+                    systemImage:
+                        "plus.circle.fill"
                 )
             }
-            .buttonStyle(
-                .plain
+
+        } header: {
+
+            Label(
+                "Must Visit",
+                systemImage:
+                    "heart.fill"
+            )
+
+        } footer: {
+
+            Text(
+                "Specific places that must be part of your day."
             )
         }
-        .padding(
-            .vertical,
-            3
-        )
     }
 
 
-    // MARK: - Flexible Stop Row
+    // MARK: - Flexible Stops Section
 
-    private func flexibleStopRow(
-        stop: Binding<FlexibleStop>
+    private var flexibleStopsSection:
+        some View {
+
+        Section {
+
+            if plan.flexibleStops
+                .isEmpty {
+
+                VStack(
+                    alignment: .leading,
+                    spacing: 6
+                ) {
+
+                    Text(
+                        "What else do you want to do?"
+                    )
+                    .font(
+                        .subheadline
+                            .weight(.medium)
+                    )
+
+
+                    Text(
+                        "Add things like matcha, lunch, wine, shopping, dessert, or an activity. Halfway will choose the actual place."
+                    )
+                    .font(.caption)
+                    .foregroundStyle(
+                        .secondary
+                    )
+                }
+                .padding(
+                    .vertical,
+                    4
+                )
+
+            } else {
+
+                ForEach(
+                    $plan.flexibleStops
+                ) {
+                    $stop in
+
+                    flexibleStopEditor(
+                        stop:
+                            $stop
+                    )
+                }
+            }
+
+
+            addFlexibleStopMenu
+
+        } header: {
+
+            Label(
+                "I Also Want To...",
+                systemImage:
+                    "sparkles"
+            )
+
+        } footer: {
+
+            Text(
+                "Tell Halfway what you want and roughly when you want it. The actual place will be chosen from real map results."
+            )
+        }
+    }
+
+
+    // MARK: - Flexible Stop Editor
+
+    private func flexibleStopEditor(
+        stop:
+            Binding<FlexibleStop>
     ) -> some View {
 
         VStack(
             alignment: .leading,
-            spacing: 10
+            spacing: 13
         ) {
+
+            // MARK: Category
 
             HStack(
                 spacing: 10
@@ -542,12 +287,13 @@ struct PlanSetupView: View {
 
                 Image(
                     systemName:
-                        stop.wrappedValue
+                        stop
+                            .wrappedValue
                             .category
                             .icon
                 )
                 .frame(
-                    width: 26
+                    width: 25
                 )
 
 
@@ -566,7 +312,9 @@ struct PlanSetupView: View {
                         Text(
                             category.title
                         )
-                        .tag(category)
+                        .tag(
+                            category
+                        )
                     }
                 }
                 .labelsHidden()
@@ -600,8 +348,11 @@ struct PlanSetupView: View {
             }
 
 
+            // MARK: Natural Language Detail
+
             TextField(
-                stop.wrappedValue
+                stop
+                    .wrappedValue
                     .category
                     .placeholder,
 
@@ -611,17 +362,347 @@ struct PlanSetupView: View {
             .textInputAutocapitalization(
                 .sentences
             )
+
+
+            Divider()
+
+
+            // MARK: When
+
+            Picker(
+                "When",
+                selection:
+                    stop.timePreference
+            ) {
+
+                ForEach(
+                    FlexibleStopTimePreference
+                        .allCases
+                ) {
+                    preference in
+
+                    Label(
+                        preference.title,
+                        systemImage:
+                            preference.icon
+                    )
+                    .tag(
+                        preference
+                    )
+                }
+            }
+
+
+            // MARK: Specific Time
+
+            if stop
+                .wrappedValue
+                .timePreference
+                ==
+                .specific {
+
+                DatePicker(
+                    "Preferred time",
+                    selection:
+                        stop.specificTime,
+                    displayedComponents:
+                        .hourAndMinute
+                )
+                .datePickerStyle(
+                    .compact
+                )
+            }
+
+
+            // MARK: More Options
+
+            DisclosureGroup {
+
+                VStack(
+                    alignment: .leading,
+                    spacing: 12
+                ) {
+
+                    Picker(
+                        "Stay",
+                        selection:
+                            stop.stayDuration
+                    ) {
+
+                        ForEach(
+                            StopDurationPreference
+                                .allCases
+                        ) {
+                            duration in
+
+                            Text(
+                                duration.title
+                            )
+                            .tag(
+                                duration
+                            )
+                        }
+                    }
+
+
+                    if stop
+                        .wrappedValue
+                        .stayDuration
+                        ==
+                        .custom {
+
+                        Stepper(
+                            value:
+                                stop
+                                    .customStayMinutes,
+                            in:
+                                15...360,
+                            step:
+                                15
+                        ) {
+
+                            HStack {
+
+                                Text(
+                                    "Stay for"
+                                )
+
+
+                                Spacer()
+
+
+                                Text(
+                                    formatMinutes(
+                                        stop
+                                            .wrappedValue
+                                            .customStayMinutes
+                                    )
+                                )
+                                .foregroundStyle(
+                                    .secondary
+                                )
+                            }
+                        }
+                    }
+
+
+                    Toggle(
+                        "Must fit this into my day",
+                        isOn:
+                            stop.isRequired
+                    )
+                }
+                .padding(
+                    .top,
+                    8
+                )
+
+            } label: {
+
+                Label(
+                    "More options",
+                    systemImage:
+                        "slider.horizontal.3"
+                )
+                .font(
+                    .subheadline
+                )
+            }
         }
         .padding(
             .vertical,
-            4
+            7
         )
     }
 
 
-    // MARK: - Description
+    // MARK: - Add Flexible Stop
 
-    private func preferenceDescription(
+    private var addFlexibleStopMenu:
+        some View {
+
+        Menu {
+
+            ForEach(
+                FlexibleStopCategory
+                    .allCases
+            ) {
+                category in
+
+                Button {
+
+                    addFlexibleStop(
+                        category
+                    )
+
+                } label: {
+
+                    Label(
+                        category.title,
+                        systemImage:
+                            category.icon
+                    )
+                }
+            }
+
+        } label: {
+
+            Label(
+                "Add something",
+                systemImage:
+                    "plus.circle.fill"
+            )
+        }
+    }
+
+
+    // MARK: - Today's Style
+
+    private var todaysStyleSection:
+        some View {
+
+        Section {
+
+            // MARK: Day Start
+
+            DatePicker(
+                "Day starts",
+                selection:
+                    $plan.intent.dayStart,
+                displayedComponents:
+                    .hourAndMinute
+            )
+
+
+            // MARK: Finish By
+
+            DatePicker(
+                "Finish by",
+                selection:
+                    $plan.intent.finishBy,
+                displayedComponents:
+                    .hourAndMinute
+            )
+
+
+            // MARK: Pace
+
+            Picker(
+                "Pace",
+                selection:
+                    $plan.intent.pace
+            ) {
+
+                ForEach(
+                    DayPace.allCases
+                ) {
+                    pace in
+
+                    Text(
+                        pace.title
+                    )
+                    .tag(
+                        pace
+                    )
+                }
+            }
+
+
+            styleDescription(
+                plan
+                    .intent
+                    .pace
+                    .subtitle
+            )
+
+
+            // MARK: Start Preference
+
+            Picker(
+                "Start with",
+                selection:
+                    $plan
+                        .intent
+                        .startPreference
+            ) {
+
+                ForEach(
+                    StartPreference
+                        .allCases
+                ) {
+                    preference in
+
+                    Text(
+                        preference.title
+                    )
+                    .tag(
+                        preference
+                    )
+                }
+            }
+
+
+            styleDescription(
+                plan
+                    .intent
+                    .startPreference
+                    .subtitle
+            )
+
+
+            // MARK: Optimization
+
+            Picker(
+                "Optimize for",
+                selection:
+                    $plan
+                        .intent
+                        .optimizationGoal
+            ) {
+
+                ForEach(
+                    OptimizationGoal
+                        .allCases
+                ) {
+                    goal in
+
+                    Text(
+                        goal.title
+                    )
+                    .tag(
+                        goal
+                    )
+                }
+            }
+
+
+            styleDescription(
+                plan
+                    .intent
+                    .optimizationGoal
+                    .subtitle
+            )
+
+        } header: {
+
+            Label(
+                "Today's Style",
+                systemImage:
+                    "slider.horizontal.3"
+            )
+
+        } footer: {
+
+            Text(
+                finishTimeFooter
+            )
+        }
+    }
+
+
+    // MARK: - Style Description
+
+    private func styleDescription(
         _ text: String
     ) -> some View {
 
@@ -633,9 +714,207 @@ struct PlanSetupView: View {
     }
 
 
+    // MARK: - Finish Time Footer
+
+    private var finishTimeFooter:
+        String {
+
+        if plan.intent.finishBy
+            <=
+            plan.intent.dayStart {
+
+            return "Finish time is treated as the following day. For example, 5 PM → 1 AM is supported."
+        }
+
+
+        return "Halfway will use this window when building your schedule."
+    }
+
+
+    // MARK: - Summary Section
+
+    private var planSummarySection:
+        some View {
+
+        Section {
+
+            HStack {
+
+                Label(
+                    "Must-visits",
+                    systemImage:
+                        "heart.fill"
+                )
+
+
+                Spacer()
+
+
+                Text(
+                    "\(plan.anchors.count)"
+                )
+                .foregroundStyle(
+                    .secondary
+                )
+            }
+
+
+            HStack {
+
+                Label(
+                    "Flexible stops",
+                    systemImage:
+                        "wand.and.stars"
+                )
+
+
+                Spacer()
+
+
+                Text(
+                    "\(plan.flexibleStops.count)"
+                )
+                .foregroundStyle(
+                    .secondary
+                )
+            }
+
+
+            HStack {
+
+                Label(
+                    "Day",
+                    systemImage:
+                        "clock"
+                )
+
+
+                Spacer()
+
+
+                Text(
+                    dayWindowText
+                )
+                .foregroundStyle(
+                    .secondary
+                )
+            }
+
+
+            HStack {
+
+                Label(
+                    "Pace",
+                    systemImage:
+                        "figure.walk"
+                )
+
+
+                Spacer()
+
+
+                Text(
+                    plan
+                        .intent
+                        .pace
+                        .title
+                )
+                .foregroundStyle(
+                    .secondary
+                )
+            }
+
+
+            if !plan.flexibleStops
+                .isEmpty {
+
+                flexibleTimeSummary
+            }
+
+        } header: {
+
+            Text(
+                "Plan Summary"
+            )
+        }
+    }
+
+
+    // MARK: - Flexible Time Summary
+
+    private var flexibleTimeSummary:
+        some View {
+
+        VStack(
+            alignment: .leading,
+            spacing: 9
+        ) {
+
+            Text(
+                "Timing"
+            )
+            .font(
+                .caption
+                    .weight(.semibold)
+            )
+            .foregroundStyle(
+                .secondary
+            )
+
+
+            ForEach(
+                plan.flexibleStops
+            ) {
+                stop in
+
+                HStack(
+                    spacing: 8
+                ) {
+
+                    Image(
+                        systemName:
+                            stop
+                                .category
+                                .icon
+                    )
+                    .frame(
+                        width: 18
+                    )
+
+
+                    Text(
+                        flexibleStopName(
+                            stop
+                        )
+                    )
+                    .lineLimit(1)
+
+
+                    Spacer()
+
+
+                    Text(
+                        timeText(
+                            for:
+                                stop
+                        )
+                    )
+                    .foregroundStyle(
+                        .secondary
+                    )
+                }
+                .font(
+                    .caption
+                )
+            }
+        }
+    }
+
+
     // MARK: - Build Button
 
-    private var buildButton: some View {
+    private var buildButton:
+        some View {
 
         VStack(spacing: 0) {
 
@@ -699,10 +978,117 @@ struct PlanSetupView: View {
     }
 
 
+    // MARK: - Anchor Row
+
+    private func anchorRow(
+        _ anchor:
+            AnchorStop,
+
+        index:
+            Int
+    ) -> some View {
+
+        HStack(
+            spacing: 12
+        ) {
+
+            ZStack {
+
+                Circle()
+                    .fill(
+                        Color.accentColor
+                    )
+                    .frame(
+                        width: 30,
+                        height: 30
+                    )
+
+
+                Text(
+                    "\(index + 1)"
+                )
+                .font(
+                    .system(
+                        size: 12,
+                        weight: .bold
+                    )
+                )
+                .foregroundStyle(
+                    .white
+                )
+            }
+
+
+            VStack(
+                alignment: .leading,
+                spacing: 3
+            ) {
+
+                Text(
+                    anchor.place.name
+                )
+                .font(
+                    .body
+                        .weight(.medium)
+                )
+
+
+                let address =
+                    anchor
+                        .place
+                        .mapItem
+                        .halfwayAddressText
+
+
+                if !address.isEmpty {
+
+                    Text(
+                        address
+                    )
+                    .font(.caption)
+                    .foregroundStyle(
+                        .secondary
+                    )
+                    .lineLimit(1)
+                }
+            }
+
+
+            Spacer()
+
+
+            Button {
+
+                removeAnchor(
+                    anchor
+                )
+
+            } label: {
+
+                Image(
+                    systemName:
+                        "xmark.circle.fill"
+                )
+                .foregroundStyle(
+                    .secondary
+                )
+            }
+            .buttonStyle(
+                .plain
+            )
+        }
+        .padding(
+            .vertical,
+            3
+        )
+    }
+
+
     // MARK: - Add Anchor
 
     private func addAnchor(
-        _ mapItem: MKMapItem
+        _ mapItem:
+            MKMapItem
     ) {
 
         let newPlace =
@@ -717,10 +1103,14 @@ struct PlanSetupView: View {
                 anchor in
 
                 let existing =
-                    anchor.place.coordinate
+                    anchor
+                        .place
+                        .coordinate
+
 
                 let incoming =
-                    newPlace.coordinate
+                    newPlace
+                        .coordinate
 
 
                 return
@@ -729,14 +1119,16 @@ struct PlanSetupView: View {
                         -
                         incoming.latitude
                     )
-                    < 0.00001
+                    <
+                    0.00001
                     &&
                     abs(
                         existing.longitude
                         -
                         incoming.longitude
                     )
-                    < 0.00001
+                    <
+                    0.00001
             }
 
 
@@ -753,6 +1145,7 @@ struct PlanSetupView: View {
 
         searchService.clear()
 
+
         isAddingAnchor =
             false
     }
@@ -761,7 +1154,8 @@ struct PlanSetupView: View {
     // MARK: - Remove Anchor
 
     private func removeAnchor(
-        _ anchor: AnchorStop
+        _ anchor:
+            AnchorStop
     ) {
 
         plan.anchors.removeAll {
@@ -771,7 +1165,7 @@ struct PlanSetupView: View {
     }
 
 
-    // MARK: - Flexible Stop
+    // MARK: - Add Flexible Stop
 
     private func addFlexibleStop(
         _ category:
@@ -787,6 +1181,8 @@ struct PlanSetupView: View {
     }
 
 
+    // MARK: - Remove Flexible Stop
+
     private func removeFlexibleStop(
         id: UUID
     ) {
@@ -795,5 +1191,115 @@ struct PlanSetupView: View {
 
             $0.id == id
         }
+    }
+
+
+    // MARK: - Flexible Stop Display Name
+
+    private func flexibleStopName(
+        _ stop:
+            FlexibleStop
+    ) -> String {
+
+        let query =
+            stop.query
+                .trimmingCharacters(
+                    in:
+                        .whitespacesAndNewlines
+                )
+
+
+        if query.isEmpty {
+
+            return stop
+                .category
+                .title
+        }
+
+
+        return "\(stop.category.title) • \(query)"
+    }
+
+
+    // MARK: - Time Text
+
+    private func timeText(
+        for stop:
+            FlexibleStop
+    ) -> String {
+
+        if stop.timePreference
+            ==
+            .specific {
+
+            return stop
+                .specificTime
+                .formatted(
+                    date: .omitted,
+                    time: .shortened
+                )
+        }
+
+
+        return stop
+            .timePreference
+            .title
+    }
+
+
+    // MARK: - Day Window
+
+    private var dayWindowText:
+        String {
+
+        let start =
+            plan.intent
+                .dayStart
+                .formatted(
+                    date: .omitted,
+                    time: .shortened
+                )
+
+
+        let finish =
+            plan.intent
+                .finishBy
+                .formatted(
+                    date: .omitted,
+                    time: .shortened
+                )
+
+
+        return "\(start) – \(finish)"
+    }
+
+
+    // MARK: - Duration Formatting
+
+    private func formatMinutes(
+        _ minutes: Int
+    ) -> String {
+
+        if minutes < 60 {
+
+            return "\(minutes) min"
+        }
+
+
+        let hours =
+            minutes / 60
+
+
+        let remainder =
+            minutes % 60
+
+
+        if remainder == 0 {
+
+            return "\(hours) hr"
+        }
+
+
+        return "\(hours) hr \(remainder) min"
     }
 }
