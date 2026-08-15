@@ -28,16 +28,17 @@ final class PlanningEngine: ObservableObject {
     private let resolver =
         FlexibleStopResolver()
 
+    private let routeOptimizer =
+        RouteOptimizer()
+
 
     // MARK: - Async State
 
     private var generation: Int = 0
 
-    private var activeDirections:
-        [MKDirections] = []
+    private var activeDirections: [MKDirections] = []
 
-    private var routeTimeCache:
-        [String: TimeInterval] = [:]
+    private var routeTimeCache: [String: TimeInterval] = [:]
 
 
     // MARK: - Build Plan
@@ -60,7 +61,7 @@ final class PlanningEngine: ObservableObject {
         isPlanning = true
 
         progressMessage =
-            "Preparing your plan..."
+            "Preparing your day..."
 
         errorMessage = nil
 
@@ -69,43 +70,24 @@ final class PlanningEngine: ObservableObject {
         routeTimeCache = [:]
 
 
-        let startingPlaces =
+        let anchors =
             plan.anchorPlaces
 
 
-        // Flexible-only plans need some
-        // geographical reference.
+        // MARK: Nothing Selected
 
-        if startingPlaces.isEmpty &&
-            !plan.flexibleStops.isEmpty &&
-            userLocation == nil {
+        if anchors.isEmpty &&
+            plan.flexibleStops.isEmpty {
 
-            finishWithError(
-                "Add a place or allow location access so Halfway knows where to search.",
-                completion: completion
-            )
-
-            return
-        }
-
-
-        // No flexible stops yet:
-        // return anchors as-is.
-
-        if plan.flexibleStops.isEmpty {
-
-            let result =
+            let itinerary =
                 GeneratedItinerary(
-                    orderedPlaces:
-                        startingPlaces,
-
-                    resolvedFlexibleStops:
-                        []
+                    orderedPlaces: [],
+                    resolvedFlexibleStops: []
                 )
 
 
             generatedItinerary =
-                result
+                itinerary
 
             isPlanning =
                 false
@@ -115,24 +97,172 @@ final class PlanningEngine: ObservableObject {
 
 
             completion(
-                result
+                itinerary
             )
 
             return
         }
 
 
-        // Start resolving flexible stops.
+        // MARK: Flexible Stops Need Geographic Context
+
+        if anchors.isEmpty &&
+            !plan.flexibleStops.isEmpty &&
+            userLocation == nil {
+
+            finishWithError(
+                "Add a must-visit place or allow location access so Halfway knows where to search.",
+                completion: completion
+            )
+
+            return
+        }
+
+
+        // MARK: Optimize Anchors
+
+        if anchors.count >= 2 {
+
+            progressMessage =
+                "Optimizing your must-visits..."
+
+
+            routeOptimizer.optimize(
+                places: anchors,
+                userLocation: userLocation,
+                travelMode: travelMode
+            ) { [weak self] result in
+
+                guard let self else {
+                    return
+                }
+
+
+                guard currentGeneration == self.generation else {
+                    return
+                }
+
+
+                switch result {
+
+                case .success(let optimizedAnchors):
+
+                    self.continueAfterAnchorOptimization(
+                        optimizedAnchors: optimizedAnchors,
+                        plan: plan,
+                        userLocation: userLocation,
+                        travelMode: travelMode,
+                        generation: currentGeneration,
+                        completion: completion
+                    )
+
+
+                case .failure(let error):
+
+                    print(
+                        """
+                        🧭 Anchor optimization failed.
+                        Error: \(error)
+                        Falling back to user's anchor order.
+                        """
+                    )
+
+
+                    /*
+                     IMPORTANT:
+
+                     Optimization failure should NOT
+                     destroy the user's entire plan.
+
+                     Fall back to the order they entered.
+                     */
+
+                    self.continueAfterAnchorOptimization(
+                        optimizedAnchors: anchors,
+                        plan: plan,
+                        userLocation: userLocation,
+                        travelMode: travelMode,
+                        generation: currentGeneration,
+                        completion: completion
+                    )
+                }
+            }
+
+        } else {
+
+            /*
+             0 or 1 anchor:
+             nothing to reorder.
+             */
+
+            continueAfterAnchorOptimization(
+                optimizedAnchors: anchors,
+                plan: plan,
+                userLocation: userLocation,
+                travelMode: travelMode,
+                generation: currentGeneration,
+                completion: completion
+            )
+        }
+    }
+
+
+    // MARK: - Continue After Anchor Optimization
+
+    private func continueAfterAnchorOptimization(
+        optimizedAnchors: [PlannedPlace],
+        plan: PlanRequest,
+        userLocation: CLLocation?,
+        travelMode: TravelMode,
+        generation: Int,
+        completion: @escaping (GeneratedItinerary?) -> Void
+    ) {
+
+        guard generation == self.generation else {
+            return
+        }
+
+
+        // MARK: No Flexible Stops
+
+        guard !plan.flexibleStops.isEmpty else {
+
+            let itinerary =
+                GeneratedItinerary(
+                    orderedPlaces: optimizedAnchors,
+                    resolvedFlexibleStops: []
+                )
+
+
+            generatedItinerary =
+                itinerary
+
+            isPlanning =
+                false
+
+            progressMessage =
+                ""
+
+
+            completion(
+                itinerary
+            )
+
+            return
+        }
+
+
+        // MARK: Start Flexible Resolution
 
         resolveFlexibleStop(
             at: 0,
             flexibleStops: plan.flexibleStops,
-            workingPlaces: startingPlaces,
+            workingPlaces: optimizedAnchors,
             resolvedStops: [],
             plan: plan,
             userLocation: userLocation,
             travelMode: travelMode,
-            generation: currentGeneration,
+            generation: generation,
             completion: completion
         )
     }
@@ -143,27 +273,14 @@ final class PlanningEngine: ObservableObject {
     private func resolveFlexibleStop(
         at index: Int,
         flexibleStops: [FlexibleStop],
-
-        // IMPORTANT:
-        // This is intentionally NOT `inout`.
-        //
-        // Arrays are value types.
-        // Each async planning step receives
-        // its own current version.
         workingPlaces: [PlannedPlace],
-
         resolvedStops: [ResolvedFlexibleStop],
-
         plan: PlanRequest,
         userLocation: CLLocation?,
         travelMode: TravelMode,
         generation: Int,
-
-        completion:
-            @escaping (GeneratedItinerary?) -> Void
+        completion: @escaping (GeneratedItinerary?) -> Void
     ) {
-
-        // Ignore stale planner work.
 
         guard generation == self.generation else {
             return
@@ -174,18 +291,15 @@ final class PlanningEngine: ObservableObject {
 
         guard index < flexibleStops.count else {
 
-            let result =
+            let itinerary =
                 GeneratedItinerary(
-                    orderedPlaces:
-                        workingPlaces,
-
-                    resolvedFlexibleStops:
-                        resolvedStops
+                    orderedPlaces: workingPlaces,
+                    resolvedFlexibleStops: resolvedStops
                 )
 
 
             generatedItinerary =
-                result
+                itinerary
 
             isPlanning =
                 false
@@ -193,12 +307,9 @@ final class PlanningEngine: ObservableObject {
             progressMessage =
                 ""
 
-            activeDirections =
-                []
-
 
             completion(
-                result
+                itinerary
             )
 
             return
@@ -215,15 +326,10 @@ final class PlanningEngine: ObservableObject {
 
         let region =
             makePlanningRegion(
-                places:
-                    workingPlaces,
-
-                userLocation:
-                    userLocation
+                places: workingPlaces,
+                userLocation: userLocation
             )
 
-
-        // MARK: Search Real MapKit Candidates
 
         resolver.searchCandidates(
             for: stop,
@@ -246,76 +352,51 @@ final class PlanningEngine: ObservableObject {
 
             case .failure(let error):
 
+                print(
+                    """
+                    🔎 Flexible stop search failed
+                    Type: \(stop.category.title)
+                    Query: \(stop.query)
+                    Error: \(error)
+                    """
+                )
+
+
                 if stop.isRequired {
 
                     self.finishWithError(
                         error.localizedDescription,
-                        completion:
-                            completion
+                        completion: completion
                     )
 
                 } else {
 
-                    // Optional stop:
-                    // skip it and continue.
-
                     self.resolveFlexibleStop(
-                        at:
-                            index + 1,
-
-                        flexibleStops:
-                            flexibleStops,
-
-                        workingPlaces:
-                            workingPlaces,
-
-                        resolvedStops:
-                            resolvedStops,
-
-                        plan:
-                            plan,
-
-                        userLocation:
-                            userLocation,
-
-                        travelMode:
-                            travelMode,
-
-                        generation:
-                            generation,
-
-                        completion:
-                            completion
+                        at: index + 1,
+                        flexibleStops: flexibleStops,
+                        workingPlaces: workingPlaces,
+                        resolvedStops: resolvedStops,
+                        plan: plan,
+                        userLocation: userLocation,
+                        travelMode: travelMode,
+                        generation: generation,
+                        completion: completion
                     )
                 }
 
 
-            // MARK: Search Succeeded
+            // MARK: Candidates Found
 
             case .success(let candidates):
 
                 self.chooseBestCandidate(
-                    for:
-                        stop,
-
-                    candidates:
-                        candidates,
-
-                    currentPlaces:
-                        workingPlaces,
-
-                    intent:
-                        plan.intent,
-
-                    userLocation:
-                        userLocation,
-
-                    travelMode:
-                        travelMode,
-
-                    generation:
-                        generation
-
+                    for: stop,
+                    candidates: candidates,
+                    currentPlaces: workingPlaces,
+                    intent: plan.intent,
+                    userLocation: userLocation,
+                    travelMode: travelMode,
+                    generation: generation
                 ) { [weak self] choice in
 
                     guard let self else {
@@ -328,47 +409,38 @@ final class PlanningEngine: ObservableObject {
                     }
 
 
-                    // MARK: No Usable Candidate
+                    // MARK: No Routable Candidate
 
                     guard let choice else {
+
+                        print(
+                            """
+                            🧭 No routable candidate found
+                            Type: \(stop.category.title)
+                            Query: \(stop.query)
+                            """
+                        )
+
 
                         if stop.isRequired {
 
                             self.finishWithError(
-                                "Halfway found places for \(stop.category.title), but couldn't build a usable \(travelMode.title.lowercased()) route to them.",
-                                completion:
-                                    completion
+                                "I found places for \(stop.category.title.lowercased()), but couldn't find a usable \(travelMode.title.lowercased()) route to them.",
+                                completion: completion
                             )
 
                         } else {
 
                             self.resolveFlexibleStop(
-                                at:
-                                    index + 1,
-
-                                flexibleStops:
-                                    flexibleStops,
-
-                                workingPlaces:
-                                    workingPlaces,
-
-                                resolvedStops:
-                                    resolvedStops,
-
-                                plan:
-                                    plan,
-
-                                userLocation:
-                                    userLocation,
-
-                                travelMode:
-                                    travelMode,
-
-                                generation:
-                                    generation,
-
-                                completion:
-                                    completion
+                                at: index + 1,
+                                flexibleStops: flexibleStops,
+                                workingPlaces: workingPlaces,
+                                resolvedStops: resolvedStops,
+                                plan: plan,
+                                userLocation: userLocation,
+                                travelMode: travelMode,
+                                generation: generation,
+                                completion: completion
                             )
                         }
 
@@ -377,74 +449,58 @@ final class PlanningEngine: ObservableObject {
                     }
 
 
-                    // MARK: Insert Chosen Place
+                    // MARK: Insert Selected Place
 
                     var updatedPlaces =
                         workingPlaces
 
 
+                    let safeInsertionIndex =
+                        min(
+                            max(
+                                choice.insertionIndex,
+                                0
+                            ),
+                            updatedPlaces.count
+                        )
+
+
                     updatedPlaces.insert(
                         choice.place,
-                        at:
-                            choice.insertionIndex
+                        at: safeInsertionIndex
                     )
 
 
                     let resolved =
                         ResolvedFlexibleStop(
-                            source:
-                                stop,
-
-                            place:
-                                choice.place,
-
-                            insertionIndex:
-                                choice.insertionIndex,
-
-                            addedTravelTime:
-                                choice.addedTravelTime
+                            source: stop,
+                            place: choice.place,
+                            insertionIndex: safeInsertionIndex,
+                            addedTravelTime: choice.addedTravelTime
                         )
 
 
-                    var updatedResolved =
+                    var updatedResolvedStops =
                         resolvedStops
 
 
-                    updatedResolved.append(
+                    updatedResolvedStops.append(
                         resolved
                     )
 
 
-                    // Continue planning with
-                    // the NEW arrays.
+                    // MARK: Continue To Next Flexible Stop
 
                     self.resolveFlexibleStop(
-                        at:
-                            index + 1,
-
-                        flexibleStops:
-                            flexibleStops,
-
-                        workingPlaces:
-                            updatedPlaces,
-
-                        resolvedStops:
-                            updatedResolved,
-
-                        plan:
-                            plan,
-
-                        userLocation:
-                            userLocation,
-
-                        travelMode:
-                            travelMode,
-
-                        generation:
-                            generation,
-
-                        completion:
-                            completion
+                        at: index + 1,
+                        flexibleStops: flexibleStops,
+                        workingPlaces: updatedPlaces,
+                        resolvedStops: updatedResolvedStops,
+                        plan: plan,
+                        userLocation: userLocation,
+                        travelMode: travelMode,
+                        generation: generation,
+                        completion: completion
                     )
                 }
             }
@@ -452,37 +508,31 @@ final class PlanningEngine: ObservableObject {
     }
 
 
-    // MARK: - Candidate Models
+    // MARK: - Candidate Proposal
 
     private struct CandidateProposal {
 
-        let place:
-            PlannedPlace
+        let place: PlannedPlace
 
-        let appleRank:
-            Int
+        let appleRank: Int
 
-        let insertionIndex:
-            Int
+        let insertionIndex: Int
 
-        let geometricAddedDistance:
-            CLLocationDistance
+        let geometricAddedDistance: CLLocationDistance
     }
 
 
+    // MARK: - Scored Candidate
+
     private struct ScoredCandidate {
 
-        let place:
-            PlannedPlace
+        let place: PlannedPlace
 
-        let insertionIndex:
-            Int
+        let insertionIndex: Int
 
-        let addedTravelTime:
-            TimeInterval
+        let addedTravelTime: TimeInterval
 
-        let finalScore:
-            Double
+        let score: Double
     }
 
 
@@ -496,116 +546,98 @@ final class PlanningEngine: ObservableObject {
         userLocation: CLLocation?,
         travelMode: TravelMode,
         generation: Int,
-        completion:
-            @escaping (ScoredCandidate?) -> Void
+        completion: @escaping (ScoredCandidate?) -> Void
     ) {
+
+        guard generation == self.generation else {
+            return
+        }
+
 
         progressMessage =
             "Comparing \(stop.category.title.lowercased()) options..."
 
 
-        // MapKit results retain their
-        // Apple search ranking.
+        // MARK: Build Candidate Proposals
 
         let proposals =
-            candidates
-                .prefix(8)
-                .enumerated()
-                .map {
-                    index,
-                    mapItem in
+            Array(
+                candidates
+                    .prefix(8)
+            )
+            .enumerated()
+            .map { index, mapItem in
 
-
-                    let place =
-                        PlannedPlace(
-                            mapItem:
-                                mapItem
-                        )
-
-
-                    let insertion =
-                        preferredInsertionIndex(
-                            for:
-                                stop,
-
-                            candidate:
-                                place,
-
-                            currentPlaces:
-                                currentPlaces,
-
-                            startPreference:
-                                intent
-                                    .startPreference,
-
-                            userLocation:
-                                userLocation
-                        )
-
-
-                    let addedDistance =
-                        geometricAddedDistance(
-                            candidate:
-                                place,
-
-                            insertionIndex:
-                                insertion,
-
-                            currentPlaces:
-                                currentPlaces,
-
-                            userLocation:
-                                userLocation
-                        )
-
-
-                    return CandidateProposal(
-                        place:
-                            place,
-
-                        appleRank:
-                            index,
-
-                        insertionIndex:
-                            insertion,
-
-                        geometricAddedDistance:
-                            addedDistance
+                let place =
+                    PlannedPlace(
+                        mapItem: mapItem
                     )
-                }
 
 
-        // MARK: Preliminary Ranking
+                let insertionIndex =
+                    preferredInsertionIndex(
+                        for: stop,
+                        candidate: place,
+                        currentPlaces: currentPlaces,
+                        startPreference: intent.startPreference,
+                        userLocation: userLocation
+                    )
 
-        let preliminary =
-            proposals.sorted {
-                first,
-                second in
+
+                let geometricDistance =
+                    geometricAddedDistance(
+                        candidate: place,
+                        insertionIndex: insertionIndex,
+                        currentPlaces: currentPlaces,
+                        userLocation: userLocation
+                    )
 
 
-                preliminaryScore(
-                    first,
-                    goal:
-                        intent
-                            .optimizationGoal
-                )
-                <
-                preliminaryScore(
-                    second,
-                    goal:
-                        intent
-                            .optimizationGoal
+                return CandidateProposal(
+                    place: place,
+                    appleRank: index,
+                    insertionIndex: insertionIndex,
+                    geometricAddedDistance: geometricDistance
                 )
             }
 
 
-        // Only perform expensive real
-        // directions calculations for
-        // the strongest candidates.
+        guard !proposals.isEmpty else {
+
+            completion(
+                nil
+            )
+
+            return
+        }
+
+
+        // MARK: Cheap Preliminary Ranking
+
+        let sortedProposals =
+            proposals.sorted { first, second in
+
+                preliminaryScore(
+                    first,
+                    goal: intent.optimizationGoal
+                )
+                <
+                preliminaryScore(
+                    second,
+                    goal: intent.optimizationGoal
+                )
+            }
+
+
+        /*
+         Real MKDirections requests are more
+         expensive, so only run actual ETA
+         calculations on the strongest few.
+         */
 
         let finalists =
             Array(
-                preliminary
+                sortedProposals
                     .prefix(4)
             )
 
@@ -652,7 +684,7 @@ final class PlanningEngine: ObservableObject {
             return
                 proposal.geometricAddedDistance
                 +
-                rank * 1_000
+                rank * 1000
 
 
         case .morePlaces:
@@ -673,7 +705,7 @@ final class PlanningEngine: ObservableObject {
     }
 
 
-    // MARK: - Evaluate Real Route Times
+    // MARK: - Evaluate Finalists
 
     private func evaluateFinalists(
         _ finalists: [CandidateProposal],
@@ -684,14 +716,15 @@ final class PlanningEngine: ObservableObject {
         goal: OptimizationGoal,
         generation: Int,
         best: ScoredCandidate?,
-        completion:
-            @escaping (ScoredCandidate?) -> Void
+        completion: @escaping (ScoredCandidate?) -> Void
     ) {
 
         guard generation == self.generation else {
             return
         }
 
+
+        // MARK: Finished
 
         guard index < finalists.count else {
 
@@ -708,22 +741,12 @@ final class PlanningEngine: ObservableObject {
 
 
         actualAddedTravelTime(
-            candidate:
-                proposal.place,
-
-            insertionIndex:
-                proposal.insertionIndex,
-
-            currentPlaces:
-                currentPlaces,
-
-            hasCurrentLocation:
-                userLocation != nil,
-
-            travelMode:
-                travelMode
-
-        ) { [weak self] addedTime in
+            candidate: proposal.place,
+            insertionIndex: proposal.insertionIndex,
+            currentPlaces: currentPlaces,
+            userLocation: userLocation,
+            travelMode: travelMode
+        ) { [weak self] addedTravelTime in
 
             guard let self else {
                 return
@@ -739,64 +762,52 @@ final class PlanningEngine: ObservableObject {
                 best
 
 
-            if let addedTime {
+            // MARK: Route Exists
+
+            if let addedTravelTime {
 
                 let score =
-                    finalCandidateScore(
-                        addedTravelTime:
-                            addedTime,
-
-                        appleRank:
-                            proposal.appleRank,
-
-                        goal:
-                            goal
+                    self.finalCandidateScore(
+                        addedTravelTime: addedTravelTime,
+                        appleRank: proposal.appleRank,
+                        goal: goal
                     )
 
 
-                let candidate =
+                let scored =
                     ScoredCandidate(
-                        place:
-                            proposal.place,
-
-                        insertionIndex:
-                            proposal.insertionIndex,
-
-                        addedTravelTime:
-                            addedTime,
-
-                        finalScore:
-                            score
+                        place: proposal.place,
+                        insertionIndex: proposal.insertionIndex,
+                        addedTravelTime: addedTravelTime,
+                        score: score
                     )
 
 
-                if updatedBest == nil ||
-                    score < updatedBest!.finalScore {
+                if updatedBest == nil {
 
                     updatedBest =
-                        candidate
+                        scored
+
+                } else if score < updatedBest!.score {
+
+                    updatedBest =
+                        scored
                 }
             }
 
 
+            // MARK: Continue
+
             self.evaluateFinalists(
                 finalists,
-                index:
-                    index + 1,
-                currentPlaces:
-                    currentPlaces,
-                userLocation:
-                    userLocation,
-                travelMode:
-                    travelMode,
-                goal:
-                    goal,
-                generation:
-                    generation,
-                best:
-                    updatedBest,
-                completion:
-                    completion
+                index: index + 1,
+                currentPlaces: currentPlaces,
+                userLocation: userLocation,
+                travelMode: travelMode,
+                goal: goal,
+                generation: generation,
+                best: updatedBest,
+                completion: completion
             )
         }
     }
@@ -827,6 +838,11 @@ final class PlanningEngine: ObservableObject {
 
 
         case .bestMatch:
+
+            /*
+             Search relevance gets a
+             considerably larger role.
+             */
 
             return
                 addedTravelTime * 0.55
@@ -862,7 +878,9 @@ final class PlanningEngine: ObservableObject {
         userLocation: CLLocation?
     ) -> Int {
 
-        if currentPlaces.isEmpty {
+        // MARK: Empty Route
+
+        guard !currentPlaces.isEmpty else {
 
             return 0
         }
@@ -899,7 +917,7 @@ final class PlanningEngine: ObservableObject {
         }
 
 
-        // MARK: Geometric Best Insertion
+        // MARK: Find Best Geometric Insertion
 
         var bestIndex =
             0
@@ -910,32 +928,25 @@ final class PlanningEngine: ObservableObject {
                 .greatestFiniteMagnitude
 
 
-        for index in
-            0...currentPlaces.count {
+        for insertionIndex
+            in 0...currentPlaces.count {
 
-            let distance =
+            let addedDistance =
                 geometricAddedDistance(
-                    candidate:
-                        candidate,
-
-                    insertionIndex:
-                        index,
-
-                    currentPlaces:
-                        currentPlaces,
-
-                    userLocation:
-                        userLocation
+                    candidate: candidate,
+                    insertionIndex: insertionIndex,
+                    currentPlaces: currentPlaces,
+                    userLocation: userLocation
                 )
 
 
-            if distance < bestDistance {
+            if addedDistance < bestDistance {
 
                 bestDistance =
-                    distance
+                    addedDistance
 
                 bestIndex =
-                    index
+                    insertionIndex
             }
         }
 
@@ -955,22 +966,19 @@ final class PlanningEngine: ObservableObject {
 
         let candidateLocation =
             location(
-                for:
-                    candidate
+                for: candidate
             )
 
 
-        // MARK: No Existing Places
+        // MARK: Empty Route
 
         if currentPlaces.isEmpty {
 
             if let userLocation {
 
-                return userLocation
-                    .distance(
-                        from:
-                            candidateLocation
-                    )
+                return userLocation.distance(
+                    from: candidateLocation
+                )
             }
 
 
@@ -978,188 +986,176 @@ final class PlanningEngine: ObservableObject {
         }
 
 
-        // MARK: Insert First
+        // MARK: Insert At Beginning
 
         if insertionIndex == 0 {
 
-            let next =
+            let nextLocation =
                 location(
-                    for:
-                        currentPlaces[0]
+                    for: currentPlaces[0]
                 )
 
 
             if let userLocation {
 
                 let newDistance =
-                    userLocation
-                        .distance(
-                            from:
-                                candidateLocation
-                        )
+                    userLocation.distance(
+                        from: candidateLocation
+                    )
                     +
-                    candidateLocation
-                        .distance(
-                            from:
-                                next
-                        )
+                    candidateLocation.distance(
+                        from: nextLocation
+                    )
 
 
                 let oldDistance =
-                    userLocation
-                        .distance(
-                            from:
-                                next
-                        )
+                    userLocation.distance(
+                        from: nextLocation
+                    )
 
 
                 return max(
                     0,
-                    newDistance
-                    -
-                    oldDistance
+                    newDistance - oldDistance
                 )
             }
 
 
-            return candidateLocation
-                .distance(
-                    from:
-                        next
-                )
+            return candidateLocation.distance(
+                from: nextLocation
+            )
         }
 
 
-        // MARK: Insert Last
+        // MARK: Insert At End
 
-        if insertionIndex ==
-            currentPlaces.count {
+        if insertionIndex >= currentPlaces.count {
 
-            let previous =
+            guard let previousPlace =
+                    currentPlaces.last
+            else {
+
+                return 0
+            }
+
+
+            let previousLocation =
                 location(
-                    for:
-                        currentPlaces[
-                            currentPlaces.count - 1
-                        ]
+                    for: previousPlace
                 )
 
 
-            return previous
-                .distance(
-                    from:
-                        candidateLocation
-                )
+            return previousLocation.distance(
+                from: candidateLocation
+            )
         }
 
 
-        // MARK: Insert Between Stops
+        // MARK: Insert Between Two Existing Stops
 
-        let previous =
+        let previousPlace =
+            currentPlaces[
+                insertionIndex - 1
+            ]
+
+
+        let nextPlace =
+            currentPlaces[
+                insertionIndex
+            ]
+
+
+        let previousLocation =
             location(
-                for:
-                    currentPlaces[
-                        insertionIndex - 1
-                    ]
+                for: previousPlace
             )
 
 
-        let next =
+        let nextLocation =
             location(
-                for:
-                    currentPlaces[
-                        insertionIndex
-                    ]
+                for: nextPlace
             )
 
 
         let newDistance =
-            previous
-                .distance(
-                    from:
-                        candidateLocation
-                )
+            previousLocation.distance(
+                from: candidateLocation
+            )
             +
-            candidateLocation
-                .distance(
-                    from:
-                        next
-                )
+            candidateLocation.distance(
+                from: nextLocation
+            )
 
 
         let oldDistance =
-            previous
-                .distance(
-                    from:
-                        next
-                )
+            previousLocation.distance(
+                from: nextLocation
+            )
 
 
         return max(
             0,
-            newDistance
-            -
-            oldDistance
+            newDistance - oldDistance
         )
+    }
+
+
+    // MARK: - Weighted Route Leg
+
+    private struct WeightedRouteLeg {
+
+        let source: MKMapItem
+
+        let destination: MKMapItem
+
+        /*
+         +1 = route is added
+         -1 = route is removed
+         */
+
+        let multiplier: Double
     }
 
 
     // MARK: - Actual Added Travel Time
 
-    private struct WeightedRouteLeg {
-
-        let from:
-            MKMapItem
-
-        let to:
-            MKMapItem
-
-        let multiplier:
-            Double
-    }
-
-
     private func actualAddedTravelTime(
         candidate: PlannedPlace,
         insertionIndex: Int,
         currentPlaces: [PlannedPlace],
-        hasCurrentLocation: Bool,
+        userLocation: CLLocation?,
         travelMode: TravelMode,
-        completion:
-            @escaping (TimeInterval?) -> Void
+        completion: @escaping (TimeInterval?) -> Void
     ) {
 
-        var legs:
-            [WeightedRouteLeg] = []
+        var legs: [WeightedRouteLeg] = []
 
 
         // MARK: Empty Route
 
         if currentPlaces.isEmpty {
 
-            if hasCurrentLocation {
+            if let userLocation {
+
+                let currentLocationItem =
+                    makeMapItem(
+                        for: userLocation
+                    )
+
 
                 legs.append(
                     WeightedRouteLeg(
-                        from:
-                            MKMapItem
-                                .forCurrentLocation(),
-
-                        to:
-                            candidate
-                                .mapItem,
-
-                        multiplier:
-                            1
+                        source: currentLocationItem,
+                        destination: candidate.mapItem,
+                        multiplier: 1
                     )
                 )
 
 
                 calculateWeightedTime(
                     legs,
-                    travelMode:
-                        travelMode,
-                    completion:
-                        completion
+                    travelMode: travelMode,
+                    completion: completion
                 )
 
                 return
@@ -1182,73 +1178,63 @@ final class PlanningEngine: ObservableObject {
                 currentPlaces[0]
 
 
-            if hasCurrentLocation {
+            if let userLocation {
 
-                let current =
-                    MKMapItem
-                        .forCurrentLocation()
+                let currentLocationItem =
+                    makeMapItem(
+                        for: userLocation
+                    )
 
 
+                // New:
                 // Current → Candidate
 
                 legs.append(
                     WeightedRouteLeg(
-                        from:
-                            current,
-
-                        to:
-                            candidate.mapItem,
-
-                        multiplier:
-                            1
+                        source: currentLocationItem,
+                        destination: candidate.mapItem,
+                        multiplier: 1
                     )
                 )
 
 
+                // New:
                 // Candidate → Next
 
                 legs.append(
                     WeightedRouteLeg(
-                        from:
-                            candidate.mapItem,
-
-                        to:
-                            next.mapItem,
-
-                        multiplier:
-                            1
+                        source: candidate.mapItem,
+                        destination: next.mapItem,
+                        multiplier: 1
                     )
                 )
 
 
-                // Remove original:
+                // Remove old:
                 // Current → Next
 
                 legs.append(
                     WeightedRouteLeg(
-                        from:
-                            current,
-
-                        to:
-                            next.mapItem,
-
-                        multiplier:
-                            -1
+                        source: currentLocationItem,
+                        destination: next.mapItem,
+                        multiplier: -1
                     )
                 )
 
             } else {
 
+                /*
+                 No known user location.
+
+                 We can still compare:
+                 Candidate → Next
+                 */
+
                 legs.append(
                     WeightedRouteLeg(
-                        from:
-                            candidate.mapItem,
-
-                        to:
-                            next.mapItem,
-
-                        multiplier:
-                            1
+                        source: candidate.mapItem,
+                        destination: next.mapItem,
+                        multiplier: 1
                     )
                 )
             }
@@ -1256,10 +1242,8 @@ final class PlanningEngine: ObservableObject {
 
             calculateWeightedTime(
                 legs,
-                travelMode:
-                    travelMode,
-                completion:
-                    completion
+                travelMode: travelMode,
+                completion: completion
             )
 
             return
@@ -1268,35 +1252,33 @@ final class PlanningEngine: ObservableObject {
 
         // MARK: Insert At End
 
-        if insertionIndex ==
-            currentPlaces.count {
+        if insertionIndex >= currentPlaces.count {
 
-            let previous =
-                currentPlaces[
-                    currentPlaces.count - 1
-                ]
+            guard let previous =
+                    currentPlaces.last
+            else {
+
+                completion(
+                    0
+                )
+
+                return
+            }
 
 
             legs.append(
                 WeightedRouteLeg(
-                    from:
-                        previous.mapItem,
-
-                    to:
-                        candidate.mapItem,
-
-                    multiplier:
-                        1
+                    source: previous.mapItem,
+                    destination: candidate.mapItem,
+                    multiplier: 1
                 )
             )
 
 
             calculateWeightedTime(
                 legs,
-                travelMode:
-                    travelMode,
-                completion:
-                    completion
+                travelMode: travelMode,
+                completion: completion
             )
 
             return
@@ -1317,83 +1299,64 @@ final class PlanningEngine: ObservableObject {
             ]
 
 
+        // New:
         // Previous → Candidate
 
         legs.append(
             WeightedRouteLeg(
-                from:
-                    previous.mapItem,
-
-                to:
-                    candidate.mapItem,
-
-                multiplier:
-                    1
+                source: previous.mapItem,
+                destination: candidate.mapItem,
+                multiplier: 1
             )
         )
 
 
+        // New:
         // Candidate → Next
 
         legs.append(
             WeightedRouteLeg(
-                from:
-                    candidate.mapItem,
-
-                to:
-                    next.mapItem,
-
-                multiplier:
-                    1
+                source: candidate.mapItem,
+                destination: next.mapItem,
+                multiplier: 1
             )
         )
 
 
-        // Remove Previous → Next
+        // Remove:
+        // Previous → Next
 
         legs.append(
             WeightedRouteLeg(
-                from:
-                    previous.mapItem,
-
-                to:
-                    next.mapItem,
-
-                multiplier:
-                    -1
+                source: previous.mapItem,
+                destination: next.mapItem,
+                multiplier: -1
             )
         )
 
 
         calculateWeightedTime(
             legs,
-            travelMode:
-                travelMode,
-            completion:
-                completion
+            travelMode: travelMode,
+            completion: completion
         )
     }
 
 
-    // MARK: - Weighted Route Calculation
+    // MARK: - Calculate Weighted Time
 
     private func calculateWeightedTime(
         _ legs: [WeightedRouteLeg],
         travelMode: TravelMode,
-        completion:
-            @escaping (TimeInterval?) -> Void
+        completion: @escaping (TimeInterval?) -> Void
     ) {
 
         calculateWeightedTime(
             legs,
-            index:
-                0,
-            total:
-                0,
-            travelMode:
-                travelMode,
-            completion:
-                completion
+            index: 0,
+            total: 0,
+            travelMode: travelMode,
+            completion: completion
         )
     }
 
@@ -1403,8 +1366,7 @@ final class PlanningEngine: ObservableObject {
         index: Int,
         total: TimeInterval,
         travelMode: TravelMode,
-        completion:
-            @escaping (TimeInterval?) -> Void
+        completion: @escaping (TimeInterval?) -> Void
     ) {
 
         guard index < legs.count else {
@@ -1425,23 +1387,17 @@ final class PlanningEngine: ObservableObject {
 
 
         travelTime(
-            from:
-                leg.from,
-
-            to:
-                leg.to,
-
-            travelMode:
-                travelMode
-
-        ) { [weak self] time in
+            from: leg.source,
+            to: leg.destination,
+            travelMode: travelMode
+        ) { [weak self] result in
 
             guard let self else {
                 return
             }
 
 
-            guard let time else {
+            guard let travelTime = result else {
 
                 completion(
                     nil
@@ -1454,63 +1410,91 @@ final class PlanningEngine: ObservableObject {
             let updatedTotal =
                 total
                 +
-                time
-                *
-                leg.multiplier
+                (
+                    travelTime
+                    *
+                    leg.multiplier
+                )
 
 
             self.calculateWeightedTime(
                 legs,
-                index:
-                    index + 1,
-                total:
-                    updatedTotal,
-                travelMode:
-                    travelMode,
-                completion:
-                    completion
+                index: index + 1,
+                total: updatedTotal,
+                travelMode: travelMode,
+                completion: completion
             )
         }
     }
 
 
-    // MARK: - MKDirections Travel Time
+    // MARK: - Travel Time
 
     private func travelTime(
         from source: MKMapItem,
         to destination: MKMapItem,
         travelMode: TravelMode,
-        completion:
-            @escaping (TimeInterval?) -> Void
+        completion: @escaping (TimeInterval?) -> Void
     ) {
 
-        let key =
-            routeCacheKey(
-                from:
-                    source,
+        // MARK: Avoid Pointless Same-Place Route Requests
 
-                to:
-                    destination,
+        let sourceCoordinate =
+            source.halfwayCoordinate
 
-                travelMode:
-                    travelMode
+
+        let destinationCoordinate =
+            destination.halfwayCoordinate
+
+
+        let sourceLocation =
+            CLLocation(
+                latitude: sourceCoordinate.latitude,
+                longitude: sourceCoordinate.longitude
             )
 
 
-        // MARK: Cache Hit
+        let destinationLocation =
+            CLLocation(
+                latitude: destinationCoordinate.latitude,
+                longitude: destinationCoordinate.longitude
+            )
 
-        if let cached =
-            routeTimeCache[key] {
+
+        if sourceLocation.distance(
+            from: destinationLocation
+        ) < 10 {
 
             completion(
-                cached
+                0
             )
 
             return
         }
 
 
-        // MARK: Build Real MapKit Route Request
+        // MARK: Cache
+
+        let cacheKey =
+            routeCacheKey(
+                from: source,
+                to: destination,
+                travelMode: travelMode
+            )
+
+
+        if let cachedTravelTime =
+            routeTimeCache[cacheKey] {
+
+            completion(
+                cachedTravelTime
+            )
+
+            return
+        }
+
+
+        // MARK: Directions Request
 
         let request =
             MKDirections.Request()
@@ -1519,11 +1503,14 @@ final class PlanningEngine: ObservableObject {
         request.source =
             source
 
+
         request.destination =
             destination
 
+
         request.transportType =
             travelMode.mapKitType
+
 
         request.requestsAlternateRoutes =
             false
@@ -1531,8 +1518,7 @@ final class PlanningEngine: ObservableObject {
 
         let directions =
             MKDirections(
-                request:
-                    request
+                request: request
             )
 
 
@@ -1541,68 +1527,128 @@ final class PlanningEngine: ObservableObject {
         )
 
 
-        directions.calculate {
-            [weak self]
-            response,
-            error in
+        /*
+         We only need ETA here,
+         not the full route geometry.
+         */
+
+        directions.calculateETA { [weak self] response, error in
+
+            guard let self else {
+                return
+            }
 
 
-            DispatchQueue.main.async {
+            if let error {
 
-                guard let self else {
-                    return
-                }
-
-
-                if let error {
-
-                    print(
-                        "Planning route error:",
-                        error.localizedDescription
-                    )
+                print(
+                    """
+                    🧭 Planning ETA skipped
+                    From: \(source.name ?? "Unknown")
+                    To: \(destination.name ?? "Unknown")
+                    Mode: \(travelMode.title)
+                    Error: \(error)
+                    """
+                )
 
 
-                    completion(
-                        nil
-                    )
+                /*
+                 One failed MapKit edge should not
+                 crash the app.
 
-                    return
-                }
-
-
-                guard let route =
-                        response?
-                            .routes
-                            .first
-
-                else {
-
-                    completion(
-                        nil
-                    )
-
-                    return
-                }
-
-
-                let time =
-                    route
-                        .expectedTravelTime
-
-
-                self.routeTimeCache[key] =
-                    time
-
+                 This candidate is treated as
+                 unavailable instead.
+                 */
 
                 completion(
-                    time
+                    nil
                 )
+
+                return
             }
+
+
+            guard let response else {
+
+                completion(
+                    nil
+                )
+
+                return
+            }
+
+
+            let time =
+                response.expectedTravelTime
+
+
+            self.routeTimeCache[cacheKey] =
+                time
+
+
+            completion(
+                time
+            )
         }
     }
 
 
-    // MARK: - Route Cache
+    // MARK: - Current Location MKMapItem
+
+    private func makeMapItem(
+        for location: CLLocation
+    ) -> MKMapItem {
+
+        /*
+         IMPORTANT:
+
+         Use the concrete CLLocation we already
+         received from LocationManager.
+
+         Do NOT use MKMapItem.forCurrentLocation()
+         inside the optimizer.
+         */
+
+
+        if #available(iOS 26.0, *) {
+
+            let item =
+                MKMapItem(
+                    location: location,
+                    address: nil
+                )
+
+
+            item.name =
+                "Current Location"
+
+
+            return item
+
+        } else {
+
+            let placemark =
+                MKPlacemark(
+                    coordinate: location.coordinate
+                )
+
+
+            let item =
+                MKMapItem(
+                    placemark: placemark
+                )
+
+
+            item.name =
+                "Current Location"
+
+
+            return item
+        }
+    }
+
+
+    // MARK: - Route Cache Key
 
     private func routeCacheKey(
         from source: MKMapItem,
@@ -1610,7 +1656,19 @@ final class PlanningEngine: ObservableObject {
         travelMode: TravelMode
     ) -> String {
 
-        "\(mapItemKey(source))→\(mapItemKey(destination))|\(travelMode.rawValue)"
+        let sourceKey =
+            mapItemKey(
+                source
+            )
+
+
+        let destinationKey =
+            mapItemKey(
+                destination
+            )
+
+
+        return "\(sourceKey)→\(destinationKey)|\(travelMode.rawValue)"
     }
 
 
@@ -1618,17 +1676,16 @@ final class PlanningEngine: ObservableObject {
         _ item: MKMapItem
     ) -> String {
 
-        if item.isCurrentLocation {
-
-            return "CURRENT_LOCATION"
-        }
-
-
         let coordinate =
             item.halfwayCoordinate
 
 
-        return "\(coordinate.latitude),\(coordinate.longitude)"
+        return String(
+            format:
+                "%.6f,%.6f",
+            coordinate.latitude,
+            coordinate.longitude
+        )
     }
 
 
@@ -1659,21 +1716,16 @@ final class PlanningEngine: ObservableObject {
         }
 
 
-        // MARK: Single Point
+        // MARK: One Point
 
         if coordinates.count == 1 {
 
             return MKCoordinateRegion(
-                center:
-                    coordinates[0],
-
+                center: coordinates[0],
                 span:
                     MKCoordinateSpan(
-                        latitudeDelta:
-                            0.08,
-
-                        longitudeDelta:
-                            0.08
+                        latitudeDelta: 0.08,
+                        longitudeDelta: 0.08
                     )
             )
         }
@@ -1696,16 +1748,12 @@ final class PlanningEngine: ObservableObject {
         guard
             let minimumLatitude =
                 latitudes.min(),
-
             let maximumLatitude =
                 latitudes.max(),
-
             let minimumLongitude =
                 longitudes.min(),
-
             let maximumLongitude =
                 longitudes.max()
-
         else {
 
             return nil
@@ -1719,14 +1767,18 @@ final class PlanningEngine: ObservableObject {
                         minimumLatitude
                         +
                         maximumLatitude
-                    ) / 2,
+                    )
+                    /
+                    2,
 
                 longitude:
                     (
                         minimumLongitude
                         +
                         maximumLongitude
-                    ) / 2
+                    )
+                    /
+                    2
             )
 
 
@@ -1742,61 +1794,65 @@ final class PlanningEngine: ObservableObject {
             minimumLongitude
 
 
-        return MKCoordinateRegion(
-            center:
-                center,
+        /*
+         These are generic search-region
+         tuning values.
 
+         No city/location is hardcoded.
+         */
+
+        let latitudeDelta =
+            max(
+                0.08,
+                latitudeSpread * 1.8
+            )
+
+
+        let longitudeDelta =
+            max(
+                0.08,
+                longitudeSpread * 1.8
+            )
+
+
+        return MKCoordinateRegion(
+            center: center,
             span:
                 MKCoordinateSpan(
-                    latitudeDelta:
-                        max(
-                            0.08,
-                            latitudeSpread
-                            *
-                            1.8
-                        ),
-
-                    longitudeDelta:
-                        max(
-                            0.08,
-                            longitudeSpread
-                            *
-                            1.8
-                        )
+                    latitudeDelta: latitudeDelta,
+                    longitudeDelta: longitudeDelta
                 )
         )
     }
 
 
-    // MARK: - Location Helper
+    // MARK: - CLLocation Helper
 
     private func location(
         for place: PlannedPlace
     ) -> CLLocation {
 
         CLLocation(
-            latitude:
-                place.coordinate.latitude,
-
-            longitude:
-                place.coordinate.longitude
+            latitude: place.coordinate.latitude,
+            longitude: place.coordinate.longitude
         )
     }
 
 
-    // MARK: - Error
+    // MARK: - Finish With Error
 
     private func finishWithError(
         _ message: String,
-        completion:
-            @escaping (GeneratedItinerary?) -> Void
+        completion: @escaping (GeneratedItinerary?) -> Void
     ) {
 
         isPlanning =
             false
 
+
         progressMessage =
             ""
+
 
         errorMessage =
             message
@@ -1808,7 +1864,7 @@ final class PlanningEngine: ObservableObject {
     }
 
 
-    // MARK: - Public State Controls
+    // MARK: - Public Controls
 
     func dismissError() {
 
@@ -1824,15 +1880,17 @@ final class PlanningEngine: ObservableObject {
     }
 
 
-    // MARK: - Cancellation
+    // MARK: - Cancel Current Work
 
     private func cancelCurrentWork() {
 
         resolver.cancel()
 
 
-        for directions in
-            activeDirections {
+        routeOptimizer.cancel()
+
+
+        for directions in activeDirections {
 
             directions.cancel()
         }
@@ -1842,6 +1900,8 @@ final class PlanningEngine: ObservableObject {
             []
     }
 
+
+    // MARK: - Cancel
 
     func cancel() {
 
@@ -1853,6 +1913,7 @@ final class PlanningEngine: ObservableObject {
 
         isPlanning =
             false
+
 
         progressMessage =
             ""
