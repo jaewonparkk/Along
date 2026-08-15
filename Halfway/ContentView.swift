@@ -34,17 +34,22 @@ struct ContentView: View {
         PlanRequest()
 
 
-    // MARK: - Travel Mode
+    // MARK: - Travel
 
     @State
     private var travelMode:
         TravelMode = .walking
 
 
-    // MARK: - UI
+    // MARK: - Sheets
 
     @State
     private var isPlannerPresented =
+        false
+
+
+    @State
+    private var isResultPresented =
         false
 
 
@@ -54,12 +59,15 @@ struct ContentView: View {
     private var cameraPosition:
         MapCameraPosition =
             .userLocation(
-                followsHeading: false,
-                fallback: .automatic
+                followsHeading:
+                    false,
+
+                fallback:
+                    .automatic
             )
 
 
-    // MARK: - Computed Places
+    // MARK: - Places
 
     private var anchorPlaces:
         [PlannedPlace] {
@@ -81,6 +89,24 @@ struct ContentView: View {
 
 
         return anchorPlaces
+    }
+
+
+    // MARK: - Error
+
+    private var currentErrorMessage:
+        String? {
+
+        if let planningError =
+            planningEngine
+                .errorMessage {
+
+            return planningError
+        }
+
+
+        return directionsService
+            .errorMessage
     }
 
 
@@ -111,7 +137,50 @@ struct ContentView: View {
                         .lastLocation
             ) {
 
-                buildCurrentPlan()
+                buildCurrentPlan(
+                    showResult:
+                        true
+                )
+            }
+        }
+        .sheet(
+            isPresented:
+                $isResultPresented
+        ) {
+
+            if let itinerary =
+                planningEngine
+                    .generatedItinerary {
+
+                ItineraryResultView(
+                    itinerary:
+                        itinerary,
+
+                    routeLegs:
+                        directionsService
+                            .routeLegs,
+
+                    totalTravelTime:
+                        directionsService
+                            .totalTravelTime,
+
+                    totalDistance:
+                        directionsService
+                            .totalDistance,
+
+                    travelMode:
+                        travelMode,
+
+                    hasCurrentLocation:
+                        locationManager
+                            .lastLocation
+                        !=
+                        nil
+                ) {
+
+                    isPlannerPresented =
+                        true
+                }
             }
         }
         .task {
@@ -131,24 +200,34 @@ struct ContentView: View {
                 !plan.anchors.isEmpty
                 ||
                 !plan.flexibleStops.isEmpty
-
             else {
 
                 return
             }
 
 
-            buildCurrentPlan()
+            /*
+             Rebuild because route optimization
+             can change based on walking,
+             driving, or transit.
+
+             Don't automatically pop open
+             result sheet here.
+             */
+
+            buildCurrentPlan(
+                showResult:
+                    false
+            )
         }
         .alert(
-            "Couldn't build this plan",
+            "Couldn't complete the route",
 
             isPresented:
                 Binding(
                     get: {
 
-                        planningEngine
-                            .errorMessage
+                        currentErrorMessage
                         !=
                         nil
                     },
@@ -161,6 +240,10 @@ struct ContentView: View {
 
                             planningEngine
                                 .dismissError()
+
+
+                            directionsService
+                                .dismissError()
                         }
                     }
                 )
@@ -170,13 +253,16 @@ struct ContentView: View {
 
                 planningEngine
                     .dismissError()
+
+
+                directionsService
+                    .dismissError()
             }
 
         } message: {
 
             Text(
-                planningEngine
-                    .errorMessage
+                currentErrorMessage
                 ??
                 ""
             )
@@ -194,10 +280,12 @@ struct ContentView: View {
                 $cameraPosition
         ) {
 
+            // MARK: User Location
+
             UserAnnotation()
 
 
-            // MARK: Real MapKit Route
+            // MARK: Actual MKRoute Polylines
 
             ForEach(
                 directionsService
@@ -216,7 +304,7 @@ struct ContentView: View {
             }
 
 
-            // MARK: Numbered Stops
+            // MARK: Stop Pins
 
             ForEach(
                 Array(
@@ -275,7 +363,7 @@ struct ContentView: View {
     }
 
 
-    // MARK: - Pin
+    // MARK: - Map Pin
 
     private func mapPin(
         number: Int
@@ -302,9 +390,7 @@ struct ContentView: View {
                     weight: .bold
                 )
             )
-            .foregroundStyle(
-                .white
-            )
+            .foregroundStyle(.white)
         }
         .overlay {
 
@@ -314,9 +400,7 @@ struct ContentView: View {
                     lineWidth: 3
                 )
         }
-        .shadow(
-            radius: 3
-        )
+        .shadow(radius: 3)
     }
 
 
@@ -325,9 +409,7 @@ struct ContentView: View {
     private var overlayInterface:
         some View {
 
-        VStack(
-            spacing: 0
-        ) {
+        VStack(spacing: 0) {
 
             topBar
 
@@ -351,14 +433,10 @@ struct ContentView: View {
     private var topBar:
         some View {
 
-        HStack(
-            spacing: 12
-        ) {
+        HStack(spacing: 12) {
 
             VStack(
-                alignment:
-                    .leading,
-
+                alignment: .leading,
                 spacing: 2
             ) {
 
@@ -372,31 +450,41 @@ struct ContentView: View {
                     )
 
 
-                Text(
-                    planningEngine.isPlanning
-                    ?
-                    "Building your day..."
-                    :
-                    "Tell us what you want to do."
-                )
-                .font(
-                    .caption
-                )
-                .foregroundStyle(
-                    .secondary
-                )
+                if planningEngine.isPlanning {
+
+                    Text(
+                        planningEngine
+                            .progressMessage
+                    )
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
+                } else if directionsService.isLoading {
+
+                    Text("Drawing your route...")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+
+                } else {
+
+                    Text(
+                        "Tell us what you want to do."
+                    )
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                }
             }
 
 
             Spacer()
 
 
-            if planningEngine.isPlanning {
+            if planningEngine.isPlanning
+                ||
+                directionsService.isLoading {
 
                 ProgressView()
-                    .controlSize(
-                        .small
-                    )
+                    .controlSize(.small)
             }
 
 
@@ -407,9 +495,7 @@ struct ContentView: View {
 
             } label: {
 
-                HStack(
-                    spacing: 7
-                ) {
+                HStack(spacing: 7) {
 
                     Image(
                         systemName:
@@ -420,18 +506,14 @@ struct ContentView: View {
                     Text("Plan")
                         .font(
                             .subheadline
-                                .weight(
-                                    .semibold
-                                )
+                                .weight(.semibold)
                         )
                 }
                 .padding(
                     .horizontal,
                     14
                 )
-                .frame(
-                    height: 42
-                )
+                .frame(height: 42)
                 .background(
                     .regularMaterial
                 )
@@ -439,18 +521,10 @@ struct ContentView: View {
                     Capsule()
                 )
             }
-            .buttonStyle(
-                .plain
-            )
+            .buttonStyle(.plain)
         }
-        .padding(
-            .horizontal,
-            18
-        )
-        .padding(
-            .vertical,
-            14
-        )
+        .padding(.horizontal, 18)
+        .padding(.vertical, 14)
         .background(
             .ultraThinMaterial
         )
@@ -463,22 +537,14 @@ struct ContentView: View {
         some View {
 
         VStack(
-            alignment:
-                .leading,
-
-            spacing: 14
+            alignment: .leading,
+            spacing: 13
         ) {
 
             panelHeader
 
 
-            if planningEngine.isPlanning {
-
-                planningProgress
-            }
-
-
-            if displayedPlaces.count >= 2 {
+            if displayedPlaces.count >= 1 {
 
                 travelPicker
             }
@@ -487,22 +553,6 @@ struct ContentView: View {
             if !displayedPlaces.isEmpty {
 
                 itineraryOrder
-            }
-
-
-            if let itinerary =
-                planningEngine
-                    .generatedItinerary,
-               !itinerary
-                    .resolvedFlexibleStops
-                    .isEmpty {
-
-                Divider()
-
-
-                resolvedFlexibleSection(
-                    itinerary
-                )
             }
 
 
@@ -515,6 +565,53 @@ struct ContentView: View {
 
                 routeSummary
             }
+
+
+            if let itinerary =
+                planningEngine
+                    .generatedItinerary,
+               !itinerary
+                    .orderedPlaces
+                    .isEmpty {
+
+                Button {
+
+                    isResultPresented =
+                        true
+
+                } label: {
+
+                    HStack {
+
+                        Spacer()
+
+
+                        Image(
+                            systemName:
+                                "list.bullet.rectangle"
+                        )
+
+
+                        Text(
+                            "View Full Itinerary"
+                        )
+                        .font(
+                            .subheadline
+                                .weight(.semibold)
+                        )
+
+
+                        Spacer()
+                    }
+                    .padding(
+                        .vertical,
+                        10
+                    )
+                }
+                .buttonStyle(
+                    .borderedProminent
+                )
+            }
         }
         .padding(18)
         .background(
@@ -526,18 +623,12 @@ struct ContentView: View {
                 style: .continuous
             )
         )
-        .padding(
-            .horizontal,
-            12
-        )
-        .padding(
-            .bottom,
-            12
-        )
+        .padding(.horizontal, 12)
+        .padding(.bottom, 12)
     }
 
 
-    // MARK: - Header
+    // MARK: - Panel Header
 
     private var panelHeader:
         some View {
@@ -545,27 +636,19 @@ struct ContentView: View {
         HStack {
 
             VStack(
-                alignment:
-                    .leading,
-
+                alignment: .leading,
                 spacing: 3
             ) {
 
                 Text("Your day")
-                    .font(
-                        .headline
-                    )
+                    .font(.headline)
 
 
                 Text(
                     "\(plan.anchors.count) fixed • \(plan.flexibleStops.count) flexible • \(plan.intent.optimizationGoal.title)"
                 )
-                .font(
-                    .caption
-                )
-                .foregroundStyle(
-                    .secondary
-                )
+                .font(.caption)
+                .foregroundStyle(.secondary)
             }
 
 
@@ -576,7 +659,7 @@ struct ContentView: View {
 
                 Button {
 
-                    zoomToDisplayedPlaces()
+                    zoomToRoute()
 
                 } label: {
 
@@ -585,9 +668,7 @@ struct ContentView: View {
                             "arrow.up.left.and.arrow.down.right"
                     )
                 }
-                .buttonStyle(
-                    .plain
-                )
+                .buttonStyle(.plain)
             }
 
 
@@ -603,67 +684,18 @@ struct ContentView: View {
                         "pencil"
                 )
             }
-            .buttonStyle(
-                .plain
-            )
+            .buttonStyle(.plain)
         }
     }
 
 
-    // MARK: - Progress
-
-    private var planningProgress:
-        some View {
-
-        HStack(
-            spacing: 10
-        ) {
-
-            ProgressView()
-                .controlSize(
-                    .small
-                )
-
-
-            Text(
-                planningEngine
-                    .progressMessage
-            )
-            .font(
-                .caption
-            )
-            .foregroundStyle(
-                .secondary
-            )
-
-
-            Spacer()
-        }
-        .padding(
-            10
-        )
-        .background(
-            Color.primary
-                .opacity(
-                    0.05
-                )
-        )
-        .clipShape(
-            RoundedRectangle(
-                cornerRadius: 12
-            )
-        )
-    }
-
-
-    // MARK: - Travel
+    // MARK: - Travel Picker
 
     private var travelPicker:
         some View {
 
         Picker(
             "Travel mode",
-
             selection:
                 $travelMode
         ) {
@@ -676,34 +708,28 @@ struct ContentView: View {
 
                 Label(
                     mode.title,
-
                     systemImage:
                         mode.icon
                 )
-                .tag(
-                    mode
-                )
+                .tag(mode)
             }
         }
-        .pickerStyle(
-            .segmented
-        )
+        .pickerStyle(.segmented)
         .disabled(
-            planningEngine
-                .isPlanning
+            planningEngine.isPlanning
+            ||
+            directionsService.isLoading
         )
     }
 
 
-    // MARK: - Final Order
+    // MARK: - Itinerary Order
 
     private var itineraryOrder:
         some View {
 
         VStack(
-            alignment:
-                .leading,
-
+            alignment: .leading,
             spacing: 8
         ) {
 
@@ -721,9 +747,7 @@ struct ContentView: View {
                 )
                 .font(
                     .caption
-                        .weight(
-                            .semibold
-                        )
+                        .weight(.semibold)
                 )
 
 
@@ -735,104 +759,42 @@ struct ContentView: View {
                     !=
                     nil {
 
-                    Text(
-                        "AUTO"
-                    )
-                    .font(
-                        .system(
-                            size: 9,
-                            weight: .bold
+                    Text("AUTO")
+                        .font(
+                            .system(
+                                size: 9,
+                                weight: .bold
+                            )
                         )
-                    )
-                    .foregroundStyle(
-                        .secondary
-                    )
+                        .foregroundStyle(.secondary)
                 }
             }
 
 
             ScrollView(
                 .horizontal,
-
-                showsIndicators:
-                    false
+                showsIndicators: false
             ) {
 
-                HStack(
-                    spacing: 8
-                ) {
+                HStack(spacing: 8) {
 
                     ForEach(
                         Array(
                             displayedPlaces
                                 .enumerated()
                         ),
-
-                        id:
-                            \.element.id
+                        id: \.element.id
                     ) {
                         index,
                         place in
 
 
-                        HStack(
-                            spacing: 7
-                        ) {
+                        stopChip(
+                            place:
+                                place,
 
-                            ZStack {
-
-                                Circle()
-                                    .fill(
-                                        Color.accentColor
-                                    )
-                                    .frame(
-                                        width: 24,
-                                        height: 24
-                                    )
-
-
-                                Text(
-                                    "\(index + 1)"
-                                )
-                                .font(
-                                    .system(
-                                        size: 10,
-                                        weight: .bold
-                                    )
-                                )
-                                .foregroundStyle(
-                                    .white
-                                )
-                            }
-
-
-                            Text(
-                                place.name
-                            )
-                            .font(
-                                .caption
-                                    .weight(
-                                        .medium
-                                    )
-                            )
-                            .lineLimit(1)
-                        }
-                        .padding(
-                            .horizontal,
-                            10
-                        )
-                        .padding(
-                            .vertical,
-                            7
-                        )
-                        .background(
-                            Color.primary
-                                .opacity(
-                                    0.06
-                                )
-                        )
-                        .clipShape(
-                            Capsule()
+                            number:
+                                index + 1
                         )
                     }
                 }
@@ -841,115 +803,65 @@ struct ContentView: View {
     }
 
 
-    // MARK: - Flexible Results
+    // MARK: - Stop Chip
 
-    private func resolvedFlexibleSection(
-        _ itinerary:
-            GeneratedItinerary
+    private func stopChip(
+        place: PlannedPlace,
+        number: Int
     ) -> some View {
 
-        VStack(
-            alignment:
-                .leading,
+        HStack(spacing: 7) {
 
-            spacing: 9
-        ) {
+            ZStack {
 
-            Text(
-                "Halfway picked"
-            )
-            .font(
-                .caption
-                    .weight(
-                        .semibold
+                Circle()
+                    .fill(
+                        Color.accentColor
                     )
-            )
-
-
-            ForEach(
-                itinerary
-                    .resolvedFlexibleStops
-            ) {
-                resolved in
-
-
-                HStack(
-                    spacing: 9
-                ) {
-
-                    Image(
-                        systemName:
-                            resolved
-                                .source
-                                .category
-                                .icon
+                    .frame(
+                        width: 24,
+                        height: 24
                     )
 
 
-                    VStack(
-                        alignment:
-                            .leading,
-
-                        spacing: 2
-                    ) {
-
-                        Text(
-                            resolved
-                                .place
-                                .name
-                        )
-                        .font(
-                            .caption
-                                .weight(
-                                    .semibold
-                                )
-                        )
-
-
-                        Text(
-                            resolved
-                                .source
-                                .category
-                                .title
-                        )
-                        .font(
-                            .system(
-                                size: 10
-                            )
-                        )
-                        .foregroundStyle(
-                            .secondary
-                        )
-                    }
-
-
-                    Spacer()
-
-
-                    Text(
-                        "+\(formatTime(resolved.addedTravelTime))"
+                Text(
+                    "\(number)"
+                )
+                .font(
+                    .system(
+                        size: 10,
+                        weight: .bold
                     )
-                    .font(
-                        .caption
-                    )
-                    .foregroundStyle(
-                        .secondary
-                    )
-                }
+                )
+                .foregroundStyle(.white)
             }
+
+
+            Text(place.name)
+                .font(
+                    .caption
+                        .weight(.medium)
+                )
+                .lineLimit(1)
         }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 7)
+        .background(
+            Color.primary.opacity(0.06)
+        )
+        .clipShape(
+            Capsule()
+        )
     }
 
 
-    // MARK: - Route
+    // MARK: - Route Summary
 
     private var routeSummary:
         some View {
 
         VStack(
-            alignment:
-                .leading,
-
+            alignment: .leading,
             spacing: 8
         ) {
 
@@ -958,9 +870,7 @@ struct ContentView: View {
                 Text("Route")
                     .font(
                         .caption
-                            .weight(
-                                .semibold
-                            )
+                            .weight(.semibold)
                     )
 
 
@@ -970,12 +880,8 @@ struct ContentView: View {
                 Text(
                     "\(formatTime(directionsService.totalTravelTime)) • \(formatDistance(directionsService.totalDistance))"
                 )
-                .font(
-                    .caption
-                )
-                .foregroundStyle(
-                    .secondary
-                )
+                .font(.caption)
+                .foregroundStyle(.secondary)
             }
 
 
@@ -986,21 +892,17 @@ struct ContentView: View {
                 leg in
 
 
-                HStack(
-                    spacing: 7
-                ) {
+                HStack(spacing: 7) {
 
                     Image(
                         systemName:
                             travelMode.icon
                     )
-                    .font(
-                        .caption
-                    )
+                    .font(.caption)
 
 
                     Text(
-                        leg.from.name
+                        leg.fromName
                     )
                     .lineLimit(1)
 
@@ -1010,14 +912,13 @@ struct ContentView: View {
                             "arrow.right"
                     )
                     .font(
-                        .system(
-                            size: 8
-                        )
+                        .system(size: 8)
                     )
+                    .foregroundStyle(.secondary)
 
 
                     Text(
-                        leg.to.name
+                        leg.toName
                     )
                     .lineLimit(1)
 
@@ -1030,38 +931,25 @@ struct ContentView: View {
                             leg.travelTime
                         )
                     )
-                    .foregroundStyle(
-                        .secondary
-                    )
+                    .foregroundStyle(.secondary)
                 }
-                .font(
-                    .caption
-                )
+                .font(.caption)
             }
         }
     }
 
 
-    // MARK: - BUILD
+    // MARK: - Build
 
-    private func buildCurrentPlan() {
+    private func buildCurrentPlan(
+        showResult: Bool
+    ) {
 
-        directionsService
-            .clear()
+        directionsService.clear()
 
-
-        /*
-         ALL plans go through PlanningEngine.
-
-         Even if there are only anchors.
-
-         This is what enables automatic
-         anchor ordering.
-         */
 
         planningEngine.build(
-            plan:
-                plan,
+            plan: plan,
 
             userLocation:
                 locationManager
@@ -1078,45 +966,99 @@ struct ContentView: View {
             }
 
 
-            directionsService
-                .buildRoute(
-                    for:
-                        itinerary
-                            .orderedPlaces,
+            directionsService.buildRoute(
+                for:
+                    itinerary
+                        .orderedPlaces,
 
-                    travelMode:
-                        travelMode
-                )
+                from:
+                    locationManager
+                        .lastLocation,
+
+                travelMode:
+                    travelMode
+            ) {
+                success in
 
 
-            DispatchQueue.main
-                .asyncAfter(
-                    deadline:
-                        .now()
-                        +
-                        0.3
-                ) {
+                zoomToRoute()
 
-                    zoomToDisplayedPlaces()
+
+                /*
+                 Show the result screen only
+                 when the user explicitly tapped
+                 Build My Day.
+                 */
+
+                guard showResult else {
+                    return
                 }
+
+
+                /*
+                 Even if one final route leg
+                 fails, DirectionsService will
+                 already show a useful error.
+
+                 Don't stack two modals.
+                 */
+
+                guard success else {
+                    return
+                }
+
+
+                DispatchQueue.main
+                    .asyncAfter(
+                        deadline:
+                            .now()
+                            +
+                            0.35
+                    ) {
+
+                        isResultPresented =
+                            true
+                    }
+            }
         }
     }
 
 
     // MARK: - Zoom
 
-    private func zoomToDisplayedPlaces() {
+    private func zoomToRoute() {
 
-        let places =
-            displayedPlaces
+        var coordinates =
+            displayedPlaces.map {
+                $0.coordinate
+            }
 
 
-        guard !places.isEmpty else {
+        /*
+         Include current location so the
+         first route segment also fits
+         inside the camera.
+         */
+
+        if let userLocation =
+            locationManager
+                .lastLocation {
+
+            coordinates.insert(
+                userLocation.coordinate,
+                at: 0
+            )
+        }
+
+
+        guard !coordinates.isEmpty else {
             return
         }
 
 
-        if places.count == 1 {
+        // MARK: Single Coordinate
+
+        if coordinates.count == 1 {
 
             withAnimation {
 
@@ -1124,8 +1066,7 @@ struct ContentView: View {
                     .region(
                         MKCoordinateRegion(
                             center:
-                                places[0]
-                                    .coordinate,
+                                coordinates[0],
 
                             span:
                                 MKCoordinateSpan(
@@ -1145,28 +1086,28 @@ struct ContentView: View {
 
 
         let latitudes =
-            places.map {
-                $0.coordinate.latitude
+            coordinates.map {
+                $0.latitude
             }
 
 
         let longitudes =
-            places.map {
-                $0.coordinate.longitude
+            coordinates.map {
+                $0.longitude
             }
 
 
         guard
-            let minLat =
+            let minLatitude =
                 latitudes.min(),
 
-            let maxLat =
+            let maxLatitude =
                 latitudes.max(),
 
-            let minLon =
+            let minLongitude =
                 longitudes.min(),
 
-            let maxLon =
+            let maxLongitude =
                 longitudes.max()
 
         else {
@@ -1179,17 +1120,49 @@ struct ContentView: View {
             CLLocationCoordinate2D(
                 latitude:
                     (
-                        minLat
+                        minLatitude
                         +
-                        maxLat
-                    ) / 2,
+                        maxLatitude
+                    )
+                    /
+                    2,
 
                 longitude:
                     (
-                        minLon
+                        minLongitude
                         +
-                        maxLon
-                    ) / 2
+                        maxLongitude
+                    )
+                    /
+                    2
+            )
+
+
+        let latitudeDelta =
+            max(
+                0.02,
+
+                (
+                    maxLatitude
+                    -
+                    minLatitude
+                )
+                *
+                1.6
+            )
+
+
+        let longitudeDelta =
+            max(
+                0.02,
+
+                (
+                    maxLongitude
+                    -
+                    minLongitude
+                )
+                *
+                1.6
             )
 
 
@@ -1204,30 +1177,10 @@ struct ContentView: View {
                         span:
                             MKCoordinateSpan(
                                 latitudeDelta:
-                                    max(
-                                        0.02,
-
-                                        (
-                                            maxLat
-                                            -
-                                            minLat
-                                        )
-                                        *
-                                        1.6
-                                    ),
+                                    latitudeDelta,
 
                                 longitudeDelta:
-                                    max(
-                                        0.02,
-
-                                        (
-                                            maxLon
-                                            -
-                                            minLon
-                                        )
-                                        *
-                                        1.6
-                                    )
+                                    longitudeDelta
                             )
                     )
                 )
@@ -1238,8 +1191,7 @@ struct ContentView: View {
     // MARK: - Formatting
 
     private func formatDistance(
-        _ meters:
-            CLLocationDistance
+        _ meters: CLLocationDistance
     ) -> String {
 
         if meters < 1000 {
@@ -1249,23 +1201,19 @@ struct ContentView: View {
 
 
         return String(
-            format:
-                "%.1f km",
-
+            format: "%.1f km",
             meters / 1000
         )
     }
 
 
     private func formatTime(
-        _ seconds:
-            TimeInterval
+        _ seconds: TimeInterval
     ) -> String {
 
         let minutes =
             max(
                 1,
-
                 Int(
                     round(
                         seconds / 60
@@ -1302,5 +1250,6 @@ struct ContentView: View {
 // MARK: - Preview
 
 #Preview {
+
     ContentView()
 }
