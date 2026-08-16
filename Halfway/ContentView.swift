@@ -5,9 +5,6 @@ import CoreLocation
 
 struct ContentView: View {
 
-    @State
-    private var isShowingSplash = true
-
     // MARK: - Services
 
     @StateObject
@@ -57,6 +54,10 @@ struct ContentView: View {
 
     @State
     private var isSavedDaysPresented =
+        false
+
+    @State
+    private var isLocationIntroPresented =
         false
 
 
@@ -127,13 +128,7 @@ struct ContentView: View {
 
             overlayInterface
 
-            if isShowingSplash {
-                LaunchSplashView()
-                    .transition(.opacity)
-                    .zIndex(100)
-            }
         }
-        .statusBarHidden(isShowingSplash)
         .sheet(
             isPresented:
                 $isPlannerPresented
@@ -217,20 +212,22 @@ struct ContentView: View {
             SavedDaysView()
         }
         .task {
-
-            locationManager
-                .requestPermission()
-        }
-        .task {
-            guard isShowingSplash else { return }
-
-            try? await Task.sleep(for: .seconds(3))
-
-            guard !Task.isCancelled else { return }
-
-            withAnimation(.easeInOut(duration: 0.65)) {
-                isShowingSplash = false
+            if locationManager.authorizationStatus == .notDetermined {
+                isLocationIntroPresented = true
+            } else {
+                locationManager.requestPermission()
             }
+        }
+        .alert(
+            "Plan from where you are?",
+            isPresented: $isLocationIntroPresented
+        ) {
+            Button("Use My Location") {
+                locationManager.requestPermission()
+            }
+            Button("Not Now", role: .cancel) {}
+        } message: {
+            Text("Along uses your location to find nearby places and calculate the first route. You can still plan without it.")
         }
         .onChange(
             of:

@@ -54,7 +54,7 @@ struct HalfwayApp: App {
 
         WindowGroup {
 
-            ContentView()
+            AppEntryView()
         }
         .modelContainer(for: SavedDay.self)
     }
