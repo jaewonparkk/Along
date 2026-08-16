@@ -46,15 +46,14 @@ SwiftUI · MapKit · CoreLocation · Google Places SDK · SwiftData · Swift Con
 
 ## Tech Stack
 
-| Area | Technology | Purpose |
-| --- | --- | --- |
-| UI | SwiftUI | Declarative screens, navigation, sheets, onboarding, and itinerary views |
-| Maps and routing | MapKit | Map display, directions, route distance, and travel-time estimates |
-| Location | CoreLocation | Current-location permission and starting-point updates |
-| Place discovery | Google Places SDK for iOS | Place search, matching, photos, addresses, and opening-hour data |
-| Persistence | SwiftData | Local storage for saved days without login or a backend |
-| State and async work | Combine, async/await | Search updates, location changes, routing, and place enrichment |
-| Language and platform | Swift 5, iOS | Native iPhone application |
+- **SwiftUI** — App interface, navigation, sheets, onboarding, and itinerary views
+- **MapKit** — Maps, directions, route distance, and travel-time estimates
+- **CoreLocation** — Location permission and current starting point
+- **Google Places SDK for iOS** — Place search, photos, addresses, and opening hours
+- **SwiftData** — Local saved-day storage without an account or backend
+- **Combine** — Search, location, and planning state updates
+- **Swift Concurrency** — Asynchronous place lookup, enrichment, and route planning
+- **Swift 5 · iOS** — Native iPhone development
 
 ## Project Structure
 
