@@ -500,7 +500,7 @@ struct PlaceSearchView: View {
     ) -> String {
 
         var address =
-            mapItem.halfwayAddressText
+            mapItem.alongAddressText
 
 
         guard

@@ -19,7 +19,7 @@ struct PlaceSearchResult: Identifiable {
     var id: String {
 
         let coordinate =
-            mapItem.halfwayCoordinate
+            mapItem.alongCoordinate
 
         return """
         \(mapItem.name ?? "Unknown")|
@@ -775,7 +775,7 @@ final class PlaceSearchService:
             let coordinate =
                 result
                     .mapItem
-                    .halfwayCoordinate
+                    .alongCoordinate
 
 
             let key =
@@ -985,7 +985,7 @@ final class PlaceSearchService:
 
         let coordinate =
             mapItem
-                .halfwayCoordinate
+                .alongCoordinate
 
 
         let destination =

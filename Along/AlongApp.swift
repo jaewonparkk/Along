@@ -4,7 +4,7 @@ import SwiftData
 
 
 @main
-struct HalfwayApp: App {
+struct AlongApp: App {
 
     init() {
 

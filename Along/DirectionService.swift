@@ -637,7 +637,7 @@ final class DirectionsService: ObservableObject {
     ) -> MKMapItem {
 
         let coordinate =
-            item.halfwayCoordinate
+            item.alongCoordinate
 
 
         let result =
@@ -696,7 +696,7 @@ final class DirectionsService: ObservableObject {
     ) -> CLLocation {
 
         let coordinate =
-            item.halfwayCoordinate
+            item.alongCoordinate
 
 
         return CLLocation(

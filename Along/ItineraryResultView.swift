@@ -243,7 +243,7 @@ struct ItineraryResultView: View {
 
 
                 Text(
-                    "Halfway built your day"
+                    "Along built your day"
                 )
                 .font(
                     .title2.bold()
@@ -710,7 +710,7 @@ struct ItineraryResultView: View {
                 let address =
                     place
                         .mapItem
-                        .halfwayAddressText
+                        .alongAddressText
 
 
                 if !address.isEmpty {
@@ -1238,7 +1238,7 @@ struct ItineraryResultView: View {
             return SavedStopRecord(
                 id: place.id,
                 name: place.name,
-                address: place.mapItem.halfwayAddressText,
+                address: place.mapItem.alongAddressText,
                 latitude: place.coordinate.latitude,
                 longitude: place.coordinate.longitude,
                 startTime: scheduled?.startTime,

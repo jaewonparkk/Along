@@ -22,7 +22,7 @@ enum FlexibleStopResolverError:
         ):
 
             return
-                "Halfway couldn't find a real place matching “\(query)”."
+                "Along couldn't find a real place matching “\(query)”."
         }
     }
 }

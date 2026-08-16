@@ -101,8 +101,8 @@ final class RouteSuggestionService: ObservableObject {
         in places: [PlannedPlace]
     ) -> (index: Int, detour: CLLocationDistance) {
         guard !places.isEmpty else { return (0, 0) }
-        let point = CLLocation(latitude: item.halfwayCoordinate.latitude,
-                               longitude: item.halfwayCoordinate.longitude)
+        let point = CLLocation(latitude: item.alongCoordinate.latitude,
+                               longitude: item.alongCoordinate.longitude)
 
         if places.count == 1 {
             return (1, point.distance(from: location(of: places[0])))

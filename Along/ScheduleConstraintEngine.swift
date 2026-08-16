@@ -33,7 +33,7 @@ enum ScheduleConstraintError:
         ):
 
             return
-                "Halfway couldn't verify an open, reachable option for \(stop) at this point in your visit order."
+                "Along couldn't verify an open, reachable option for \(stop) at this point in your visit order."
         }
     }
 }
@@ -1778,7 +1778,7 @@ final class ScheduleConstraintEngine {
     ) -> MKMapItem {
 
         let coordinate =
-            item.halfwayCoordinate
+            item.alongCoordinate
 
 
         let result =
@@ -1839,7 +1839,7 @@ final class ScheduleConstraintEngine {
     ) -> CLLocation {
 
         let coordinate =
-            item.halfwayCoordinate
+            item.alongCoordinate
 
 
         return CLLocation(
@@ -1864,11 +1864,11 @@ final class ScheduleConstraintEngine {
     ) -> String {
 
         let from =
-            source.halfwayCoordinate
+            source.alongCoordinate
 
 
         let to =
-            destination.halfwayCoordinate
+            destination.alongCoordinate
 
 
         return String(

@@ -40,7 +40,7 @@ struct PlaceDetailView: View {
                         Text(place.name)
                             .font(.title2.bold())
 
-                        let address = place.mapItem.halfwayAddressText
+                        let address = place.mapItem.alongAddressText
                         if !address.isEmpty {
                             Text(address)
                                 .font(.subheadline)

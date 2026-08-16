@@ -12,26 +12,26 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		5313B1AD303032E6008B6A96 /* Halfway.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Halfway.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		5313B1AD303032E6008B6A96 /* Along.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Along.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		5313B1E630310763008B6A96 /* Exceptions for "Halfway" folder in "Halfway" target */ = {
+		5313B1E630310763008B6A96 /* Exceptions for "Along" folder in "Along" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
 			);
-			target = 5313B1AC303032E6008B6A96 /* Halfway */;
+			target = 5313B1AC303032E6008B6A96 /* Along */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		5313B1AF303032E6008B6A96 /* Halfway */ = {
+		5313B1AF303032E6008B6A96 /* Along */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				5313B1E630310763008B6A96 /* Exceptions for "Halfway" folder in "Halfway" target */,
+				5313B1E630310763008B6A96 /* Exceptions for "Along" folder in "Along" target */,
 			);
-			path = Halfway;
+			path = Along;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -52,7 +52,7 @@
 		5313B1A4303032E6008B6A96 = {
 			isa = PBXGroup;
 			children = (
-				5313B1AF303032E6008B6A96 /* Halfway */,
+				5313B1AF303032E6008B6A96 /* Along */,
 				5313B1AE303032E6008B6A96 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -60,7 +60,7 @@
 		5313B1AE303032E6008B6A96 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				5313B1AD303032E6008B6A96 /* Halfway.app */,
+				5313B1AD303032E6008B6A96 /* Along.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -68,9 +68,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		5313B1AC303032E6008B6A96 /* Halfway */ = {
+		5313B1AC303032E6008B6A96 /* Along */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 5313B1B8303032E7008B6A96 /* Build configuration list for PBXNativeTarget "Halfway" */;
+			buildConfigurationList = 5313B1B8303032E7008B6A96 /* Build configuration list for PBXNativeTarget "Along" */;
 			buildPhases = (
 				5313B1A9303032E6008B6A96 /* Sources */,
 				5313B1AA303032E6008B6A96 /* Frameworks */,
@@ -81,15 +81,15 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				5313B1AF303032E6008B6A96 /* Halfway */,
+				5313B1AF303032E6008B6A96 /* Along */,
 			);
-			name = Halfway;
+			name = Along;
 			packageProductDependencies = (
 				5313B1E130310607008B6A96 /* GooglePlaces */,
 				5313B1E330310607008B6A96 /* GooglePlacesSwift */,
 			);
-			productName = Halfway;
-			productReference = 5313B1AD303032E6008B6A96 /* Halfway.app */;
+			productName = Along;
+			productReference = 5313B1AD303032E6008B6A96 /* Along.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -107,7 +107,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 5313B1A8303032E6008B6A96 /* Build configuration list for PBXProject "Halfway" */;
+			buildConfigurationList = 5313B1A8303032E6008B6A96 /* Build configuration list for PBXProject "Along" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -124,7 +124,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				5313B1AC303032E6008B6A96 /* Halfway */,
+				5313B1AC303032E6008B6A96 /* Along */,
 			);
 		};
 /* End PBXProject section */
@@ -281,8 +281,9 @@
 				DEVELOPMENT_TEAM = P4Z32Y347P;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = Halfway/Info.plist;
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Halfway uses your location to find nearby places and plan fair meetup routes.";
+				INFOPLIST_FILE = Along/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Along;
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Along uses your location to find nearby places and build your day.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -293,8 +294,8 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = project1.Halfway;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = project1.Along;
+				PRODUCT_NAME = Along;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
@@ -315,8 +316,9 @@
 				DEVELOPMENT_TEAM = P4Z32Y347P;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = Halfway/Info.plist;
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Halfway uses your location to find nearby places and plan fair meetup routes.";
+				INFOPLIST_FILE = Along/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Along;
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Along uses your location to find nearby places and build your day.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -327,8 +329,8 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = project1.Halfway;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = project1.Along;
+				PRODUCT_NAME = Along;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
@@ -342,7 +344,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		5313B1A8303032E6008B6A96 /* Build configuration list for PBXProject "Halfway" */ = {
+		5313B1A8303032E6008B6A96 /* Build configuration list for PBXProject "Along" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				5313B1B6303032E7008B6A96 /* Debug */,
@@ -351,7 +353,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		5313B1B8303032E7008B6A96 /* Build configuration list for PBXNativeTarget "Halfway" */ = {
+		5313B1B8303032E7008B6A96 /* Build configuration list for PBXNativeTarget "Along" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				5313B1B9303032E7008B6A96 /* Debug */,

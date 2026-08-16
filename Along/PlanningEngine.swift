@@ -637,7 +637,7 @@ enum PlanningEngineError:
 
             return
                 """
-                Halfway needs either your location or at least one must-visit place to know where to search.
+                Along needs either your location or at least one must-visit place to know where to search.
                 """
         }
     }

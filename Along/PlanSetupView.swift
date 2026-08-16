@@ -201,7 +201,7 @@ struct PlanSetupView: View {
         } footer: {
 
             Text(
-                "Halfway uses what you type, timing, opening hours, and travel time to choose the actual place."
+                "Along uses what you type, timing, opening hours, and travel time to choose the actual place."
             )
         }
     }
@@ -716,7 +716,7 @@ struct PlanSetupView: View {
                     anchor
                         .place
                         .mapItem
-                        .halfwayAddressText
+                        .alongAddressText
 
 
                 if !address.isEmpty {
@@ -958,7 +958,7 @@ struct PlanSetupView: View {
         case .noPreference:
 
             return
-                "Let Halfway choose the most sensible first stop."
+                "Let Along choose the most sensible first stop."
 
 
         case .mustVisitsFirst:
@@ -984,7 +984,7 @@ struct PlanSetupView: View {
             else {
 
                 return
-                    "Let Halfway choose the first stop."
+                    "Let Along choose the first stop."
             }
 
 

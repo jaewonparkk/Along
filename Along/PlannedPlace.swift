@@ -7,7 +7,7 @@ import CoreLocation
 
 extension MKMapItem {
 
-    var halfwayCoordinate: CLLocationCoordinate2D {
+    var alongCoordinate: CLLocationCoordinate2D {
 
         if #available(iOS 26.0, *) {
             return location.coordinate
@@ -17,7 +17,7 @@ extension MKMapItem {
     }
 
 
-    var halfwayAddressText: String {
+    var alongAddressText: String {
 
         if #available(iOS 26.0, *) {
 
@@ -61,6 +61,6 @@ struct PlannedPlace: Identifiable {
 
     var coordinate: CLLocationCoordinate2D {
 
-        mapItem.halfwayCoordinate
+        mapItem.alongCoordinate
     }
 }

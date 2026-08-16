@@ -427,11 +427,11 @@ final class RouteOptimizer {
     ) {
 
         let sourceCoordinate =
-            source.halfwayCoordinate
+            source.alongCoordinate
 
 
         let destinationCoordinate =
-            destination.halfwayCoordinate
+            destination.alongCoordinate
 
 
         let sourceLocation =

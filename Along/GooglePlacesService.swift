@@ -285,7 +285,7 @@ final class GooglePlacesService {
         let appleAddress =
             anchor
                 .mapItem
-                .halfwayAddressText
+                .alongAddressText
                 .trimmingCharacters(
                     in:
                         .whitespacesAndNewlines
