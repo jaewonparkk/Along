@@ -8,15 +8,23 @@ Planning a day in a new city usually means switching between search, maps, openi
 
 ## Demo
 
-> **Demo GIF / video:** Add the public demo link here.
+### 1. Home & Onboarding
 
-<!-- Replace this block with one of the following:
-[Watch the demo](https://your-demo-link.example)
+Start with Along's branded splash, home screen, and three-page onboarding experience.
 
-or
+![Along Home and Onboarding](Docs/home-and-onboarding.jpg)
 
-![Along app demo](Docs/along-demo.gif)
--->
+### 2. Planning
+
+Add must-visits and flexible stops, choose stay durations, set the day window, and build the route.
+
+![Along Planning Flow](Docs/planning.png)
+
+### 3. Results
+
+Review route optimization, follow the generated itinerary, inspect schedule warnings, and save the finished day locally.
+
+![Along Results Flow](Docs/results.png)
 
 ## Built With
 
