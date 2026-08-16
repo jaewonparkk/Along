@@ -1,0 +1,47 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Xcode user-specific state
+xcuserdata/
+*.xcuserstate
+*.xcscmblueprint
+*.xccheckout
+
+# Xcode build products and caches
+DerivedData/
+build/
+*.hmap
+*.ipa
+*.dSYM
+*.dSYM.zip
+
+# Swift Package Manager local build/cache data
+.build/
+.swiftpm/xcode/package.xcworkspace/xcuserdata/
+
+# Temporary files
+*.tmp
+*.swp
+*~
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+Secrets.xcconfig
+Local.xcconfig
+
+# Test and automation output
+*.xcresult
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/
+fastlane/test_output/
+
+# CocoaPods generated dependencies (if added later)
+Pods/
+
+# Carthage generated builds (if added later)
+Carthage/Build/
