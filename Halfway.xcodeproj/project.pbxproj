@@ -117,7 +117,7 @@
 			mainGroup = 5313B1A4303032E6008B6A96;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				5313B1E030310607008B6A96 /* XCRemoteSwiftPackageReference "ios-places-sdk" */,
+				5313B1E030310607008B6A96 /* XCLocalSwiftPackageReference "Vendor/GooglePlacesPackage" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 5313B1AE303032E6008B6A96 /* Products */;
@@ -362,26 +362,22 @@
 		};
 /* End XCConfigurationList section */
 
-/* Begin XCRemoteSwiftPackageReference section */
-		5313B1E030310607008B6A96 /* XCRemoteSwiftPackageReference "ios-places-sdk" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/googlemaps/ios-places-sdk";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 11.0.0;
-			};
+/* Begin XCLocalSwiftPackageReference section */
+		5313B1E030310607008B6A96 /* XCLocalSwiftPackageReference "Vendor/GooglePlacesPackage" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Vendor/GooglePlacesPackage;
 		};
-/* End XCRemoteSwiftPackageReference section */
+/* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
 		5313B1E130310607008B6A96 /* GooglePlaces */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 5313B1E030310607008B6A96 /* XCRemoteSwiftPackageReference "ios-places-sdk" */;
+			package = 5313B1E030310607008B6A96 /* XCLocalSwiftPackageReference "Vendor/GooglePlacesPackage" */;
 			productName = GooglePlaces;
 		};
 		5313B1E330310607008B6A96 /* GooglePlacesSwift */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 5313B1E030310607008B6A96 /* XCRemoteSwiftPackageReference "ios-places-sdk" */;
+			package = 5313B1E030310607008B6A96 /* XCLocalSwiftPackageReference "Vendor/GooglePlacesPackage" */;
 			productName = GooglePlacesSwift;
 		};
 /* End XCSwiftPackageProductDependency section */

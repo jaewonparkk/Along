@@ -247,37 +247,7 @@ final class FlexibleStopResolver {
 
         switch stop.category {
 
-        case .breakfast:
-
-            queries.append(
-                "\(detail) breakfast"
-            )
-
-
-            queries.append(
-                "\(detail) restaurant"
-            )
-
-
-        case .lunch:
-
-            queries.append(
-                "\(detail) lunch"
-            )
-
-
-            queries.append(
-                "\(detail) restaurant"
-            )
-
-
-        case .dinner:
-
-            queries.append(
-                "\(detail) dinner"
-            )
-
-
+        case .food:
             queries.append(
                 "\(detail) restaurant"
             )
@@ -351,19 +321,9 @@ final class FlexibleStopResolver {
 
         switch category {
 
-        case .breakfast:
+        case .food:
 
-            return "breakfast"
-
-
-        case .lunch:
-
-            return "lunch restaurant"
-
-
-        case .dinner:
-
-            return "dinner restaurant"
+            return "restaurant"
 
 
         case .coffee:

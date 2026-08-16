@@ -1,5 +1,6 @@
 import SwiftUI
 import GooglePlaces
+import SwiftData
 
 
 @main
@@ -55,5 +56,6 @@ struct HalfwayApp: App {
 
             ContentView()
         }
+        .modelContainer(for: SavedDay.self)
     }
 }

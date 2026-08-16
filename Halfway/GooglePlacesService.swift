@@ -65,6 +65,7 @@ final class GooglePlacesService {
             GMSPlaceProperty.formattedAddress,
             GMSPlaceProperty.rating,
             GMSPlaceProperty.types,
+            GMSPlaceProperty.photos,
 
             GMSPlaceProperty.businessStatus,
             GMSPlaceProperty.utcOffsetMinutes,
@@ -76,6 +77,51 @@ final class GooglePlacesService {
         .map {
             $0.rawValue
         }
+    }
+
+    func detail(
+        for place: PlannedPlace
+    ) async -> PlaceDetailData {
+        let candidate = await enrich(anchor: place)
+
+        guard let googlePlace = candidate.googlePlace else {
+            return PlaceDetailData(
+                photo: nil,
+                todayHours: nil,
+                openStatus: .unknown
+            )
+        }
+
+        let status = await openStatus(place: googlePlace, at: Date())
+        let weekday = Date().formatted(.dateTime.weekday(.wide))
+        let hours = (googlePlace.currentOpeningHours?.weekdayText
+                     ?? googlePlace.openingHours?.weekdayText)?
+            .first {
+                $0.range(
+                    of: weekday,
+                    options: [.anchored, .caseInsensitive, .diacriticInsensitive]
+                ) != nil
+            }
+
+        var photo: UIImage?
+        if let metadata = googlePlace.photos?.first {
+            let request = GMSFetchPhotoRequest(
+                photoMetadata: metadata,
+                maxSize: CGSize(width: 1200, height: 700)
+            )
+
+            photo = await withCheckedContinuation { continuation in
+                client.fetchPhoto(with: request) { image, _ in
+                    continuation.resume(returning: image)
+                }
+            }
+        }
+
+        return PlaceDetailData(
+            photo: photo,
+            todayHours: hours,
+            openStatus: PlaceDetailOpenStatus(status)
+        )
     }
 
 

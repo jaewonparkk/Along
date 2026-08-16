@@ -25,7 +25,7 @@ enum ScheduleConstraintError:
         ):
 
             return
-                "\(place) doesn't fit within the selected day and its opening hours."
+                "\(place) isn't confirmed open long enough at this point in your visit order. Move it earlier or change your day hours."
 
 
         case .flexibleStopUnavailable(
@@ -33,7 +33,7 @@ enum ScheduleConstraintError:
         ):
 
             return
-                "Halfway couldn't find an open and reachable option for \(stop)."
+                "Halfway couldn't verify an open, reachable option for \(stop) at this point in your visit order."
         }
     }
 }
@@ -112,6 +112,9 @@ final class ScheduleConstraintEngine {
         let requestedTiming:
             String?
 
+        let warning:
+            String?
+
         let score:
             Double
     }
@@ -123,8 +126,14 @@ final class ScheduleConstraintEngine {
         anchors:
             [PlaceCandidate],
 
+        anchorStayMinutes:
+            [UUID: Int],
+
         flexiblePools:
             [FlexibleCandidatePool],
+
+        visitOrder:
+            [PlanRequest.StopReference],
 
         intent:
             PlanIntent,
@@ -199,11 +208,22 @@ final class ScheduleConstraintEngine {
             var options:
                 [EvaluatedOption] = []
 
+            let nextReference = visitOrder.first { reference in
+                switch reference {
+                case .anchor(let id):
+                    return remainingAnchors.contains { $0.plannedPlace.id == id }
+                case .flexible(let id):
+                    return remainingFlexible.contains { $0.stop.id == id }
+                }
+            }
+
 
             // MARK: Must Visits
 
             for anchor
                 in remainingAnchors {
+
+                if let nextReference, nextReference != .anchor(anchor.plannedPlace.id) { continue }
 
                 if let evaluated =
                     await evaluate(
@@ -219,6 +239,9 @@ final class ScheduleConstraintEngine {
 
                         flexibleStop:
                             nil,
+
+                        stayMinutesOverride:
+                            anchorStayMinutes[anchor.plannedPlace.id],
 
                         currentMapItem:
                             currentMapItem,
@@ -273,6 +296,8 @@ final class ScheduleConstraintEngine {
                 for pool
                     in remainingFlexible {
 
+                    if let nextReference, nextReference != .flexible(pool.stop.id) { continue }
+
                     for candidate
                         in pool
                             .candidates
@@ -293,6 +318,9 @@ final class ScheduleConstraintEngine {
 
                                 flexibleStop:
                                     pool.stop,
+
+                                stayMinutesOverride:
+                                    nil,
 
                                 currentMapItem:
                                     currentMapItem,
@@ -394,7 +422,10 @@ final class ScheduleConstraintEngine {
                         best.timingStatus,
 
                     requestedTiming:
-                        best.requestedTiming
+                        best.requestedTiming,
+
+                    warning:
+                        best.warning
                 )
             )
 
@@ -503,6 +534,9 @@ final class ScheduleConstraintEngine {
 
         flexibleStop:
             FlexibleStop?,
+
+        stayMinutesOverride:
+            Int?,
 
         currentMapItem:
             MKMapItem?,
@@ -679,12 +713,11 @@ final class ScheduleConstraintEngine {
         // MARK: Stay Duration
 
         let stayMinutes =
+            stayMinutesOverride
+            ??
             defaultStayMinutes(
-                for:
-                    flexibleStop,
-
-                pace:
-                    intent.pace
+                for: flexibleStop,
+                pace: intent.pace
             )
 
 
@@ -699,17 +732,14 @@ final class ScheduleConstraintEngine {
                 )
 
 
-        // MARK: HARD Day End
+        var warnings: [String] = []
 
-        guard departure <=
-                intent.normalizedFinishBy
-        else {
-
-            return nil
+        if departure > intent.normalizedFinishBy {
+            warnings.append("This stop finishes after your preferred end time.")
         }
 
 
-        // MARK: HARD Opening Hours
+        // MARK: Opening Hours Advisory
 
         let availability =
             await placesService
@@ -732,13 +762,8 @@ final class ScheduleConstraintEngine {
         switch availability {
 
         case .closed:
-
-            /*
-             Closed during visit =
-             impossible.
-             */
-
-            return nil
+            hoursPenalty = 24 * 60 * 60
+            warnings.append("Opening hours conflict with this visit time. Check before you go.")
 
 
         case .open:
@@ -748,14 +773,9 @@ final class ScheduleConstraintEngine {
 
 
         case .unknown:
-
-            /*
-             Unknown is NOT treated as
-             confidently open.
-             */
-
-            hoursPenalty =
-                30 * 60
+            // No published hours means no restriction. Preserve the user's
+            // chosen order instead of rejecting the whole itinerary.
+            hoursPenalty = 0
         }
 
 
@@ -997,6 +1017,11 @@ final class ScheduleConstraintEngine {
             requestedTiming:
                 timingText,
 
+            warning:
+                warnings.isEmpty
+                ? nil
+                : warnings.joined(separator: " "),
+
             score:
                 score
         )
@@ -1047,43 +1072,7 @@ final class ScheduleConstraintEngine {
         }
 
 
-        // MARK: Semantic Category Timing
-
-        guard let naturalMinutes =
-                stop
-                    .category
-                    .naturalTimeWindowMinutes,
-              let label =
-                stop
-                    .category
-                    .naturalTimingLabel
-        else {
-
-            return nil
-        }
-
-
-        return EffectiveTiming(
-            window:
-                makeWindow(
-                    startMinutes:
-                        naturalMinutes
-                            .lowerBound,
-
-                    endMinutes:
-                        naturalMinutes
-                            .upperBound,
-
-                    intent:
-                        intent
-                ),
-
-            label:
-                label,
-
-            isExplicit:
-                false
-        )
+        return nil
     }
 
 
@@ -1373,19 +1362,9 @@ final class ScheduleConstraintEngine {
         switch stop?
             .category {
 
-        case .breakfast:
+        case .food:
 
-            base = 60
-
-
-        case .lunch:
-
-            base = 60
-
-
-        case .dinner:
-
-            base = 90
+            base = 75
 
 
         case .coffee:
@@ -1502,7 +1481,7 @@ final class ScheduleConstraintEngine {
             )
 
 
-        var lower =
+        let lower =
             calendar.date(
                 byAdding:
                     .minute,
@@ -1517,7 +1496,7 @@ final class ScheduleConstraintEngine {
             intent.dayStart
 
 
-        var upper =
+        let upper =
             calendar.date(
                 byAdding:
                     .minute,
@@ -1530,40 +1509,6 @@ final class ScheduleConstraintEngine {
             )
             ??
             intent.normalizedFinishBy
-
-
-        if upper <=
-            intent.dayStart {
-
-            lower =
-                calendar.date(
-                    byAdding:
-                        .day,
-
-                    value:
-                        1,
-
-                    to:
-                        lower
-                )
-                ??
-                lower
-
-
-            upper =
-                calendar.date(
-                    byAdding:
-                        .day,
-
-                    value:
-                        1,
-
-                    to:
-                        upper
-                )
-                ??
-                upper
-        }
 
 
         return lower...upper

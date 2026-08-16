@@ -703,12 +703,16 @@ struct PlaceSearchView: View {
 
 
             Text(
-                "No places found"
+                searchService.searchMessage == nil
+                ? "No places found"
+                : "Search paused"
             )
             .font(.headline)
 
 
             Text(
+                searchService.searchMessage
+                ??
                 "Try another spelling, abbreviation, or search phrase."
             )
             .font(.subheadline)

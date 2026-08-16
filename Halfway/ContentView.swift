@@ -5,6 +5,9 @@ import CoreLocation
 
 struct ContentView: View {
 
+    @State
+    private var isShowingSplash = true
+
     // MARK: - Services
 
     @StateObject
@@ -50,6 +53,10 @@ struct ContentView: View {
 
     @State
     private var isResultPresented =
+        false
+
+    @State
+    private var isSavedDaysPresented =
         false
 
 
@@ -119,7 +126,14 @@ struct ContentView: View {
             mapView
 
             overlayInterface
+
+            if isShowingSplash {
+                LaunchSplashView()
+                    .transition(.opacity)
+                    .zIndex(100)
+            }
         }
+        .statusBarHidden(isShowingSplash)
         .sheet(
             isPresented:
                 $isPlannerPresented
@@ -175,7 +189,23 @@ struct ContentView: View {
                         locationManager
                             .lastLocation
                         !=
-                        nil
+                        nil,
+
+                    finishBy:
+                        plan.intent.normalizedFinishBy,
+
+                    suggestedPlaceIDs:
+                        Set(
+                            plan.anchors
+                                .filter { !$0.isRequired }
+                                .map { $0.place.id }
+                        ),
+
+                    onAddSuggestedStop: {
+                        suggestion in
+
+                        addSuggestedStop(suggestion)
+                    }
                 ) {
 
                     isPlannerPresented =
@@ -183,10 +213,24 @@ struct ContentView: View {
                 }
             }
         }
+        .sheet(isPresented: $isSavedDaysPresented) {
+            SavedDaysView()
+        }
         .task {
 
             locationManager
                 .requestPermission()
+        }
+        .task {
+            guard isShowingSplash else { return }
+
+            try? await Task.sleep(for: .seconds(3))
+
+            guard !Task.isCancelled else { return }
+
+            withAnimation(.easeInOut(duration: 0.65)) {
+                isShowingSplash = false
+            }
         }
         .onChange(
             of:
@@ -197,9 +241,8 @@ struct ContentView: View {
 
 
             guard
-                !plan.anchors.isEmpty
-                ||
-                !plan.flexibleStops.isEmpty
+                planningEngine.generatedItinerary
+                != nil
             else {
 
                 return
@@ -266,6 +309,32 @@ struct ContentView: View {
                 ??
                 ""
             )
+        }
+    }
+
+    private func addSuggestedStop(
+        _ suggestion: RouteSuggestion
+    ) {
+        let place = PlannedPlace(
+            mapItem: suggestion.mapItem
+        )
+
+        plan.anchors.append(
+            AnchorStop(place: place, isRequired: false)
+        )
+        plan.syncVisitOrder()
+
+        let reference = PlanRequest.StopReference.anchor(place.id)
+        plan.visitOrder.removeAll { $0 == reference }
+        plan.visitOrder.insert(
+            reference,
+            at: min(suggestion.insertionIndex, plan.visitOrder.count)
+        )
+
+        isResultPresented = false
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            buildCurrentPlan(showResult: true)
         }
     }
 
@@ -486,6 +555,16 @@ struct ContentView: View {
                 ProgressView()
                     .controlSize(.small)
             }
+
+            Button {
+                isSavedDaysPresented = true
+            } label: {
+                Image(systemName: "bookmark.fill")
+                    .frame(width: 42, height: 42)
+                    .background(.regularMaterial)
+                    .clipShape(Circle())
+            }
+            .buttonStyle(.plain)
 
 
             Button {

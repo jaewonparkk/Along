@@ -41,6 +41,8 @@ struct PlanSetupView: View {
 
                 flexibleStopsSection
 
+                visitOrderSection
+
                 todaysStyleSection
 
                 planSummarySection
@@ -300,81 +302,70 @@ struct PlanSetupView: View {
             )
 
 
-            Divider()
-
-
-            Picker(
-                "When",
-                selection:
-                    stop.timePreference
-            ) {
-
-                ForEach(
-                    FlexibleStopTimePreference
-                        .allCases
-                ) {
-                    preference in
-
-
-                    Text(
-                        preference.title
-                    )
-                    .tag(
-                        preference
-                    )
-                }
-            }
-
-
-            if stop
-                .wrappedValue
-                .timePreference
-                ==
-                .specific {
-
-                DatePicker(
-                    "Preferred time",
-                    selection:
-                        stop.specificTime,
-                    displayedComponents:
-                        .hourAndMinute
-                )
-            }
-
-
-            /*
-             Helpful but not another control.
-
-             Dinner + Anytime still means:
-             behave like dinner.
-             */
-
-            if stop
-                .wrappedValue
-                .timePreference
-                ==
-                .anytime,
-               let natural =
-                    stop
-                        .wrappedValue
-                        .category
-                        .naturalTimingLabel {
-
-                Text(
-                    "Halfway will naturally aim for \(natural.lowercased())."
-                )
-                .font(
-                    .caption
-                )
-                .foregroundStyle(
-                    .secondary
-                )
-            }
         }
         .padding(
             .vertical,
             7
         )
+    }
+
+    private var visitOrderSection: some View {
+        Section {
+            if totalRequestedStopCount == 0 {
+                Text("Add a stop to set its order and stay time.")
+                    .foregroundStyle(.secondary)
+            } else {
+                ForEach(Array(plan.visitOrder.enumerated()), id: \.element.id) { index, reference in
+                    HStack {
+                        Text("\(index + 1)")
+                            .font(.caption.bold())
+                            .frame(width: 24, height: 24)
+                            .foregroundStyle(.white)
+                            .background(Color.accentColor, in: Circle())
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text(orderTitle(reference))
+                            Menu {
+                                ForEach(durationChoices, id: \.self) { duration in
+                                    Button {
+                                        setDuration(duration, for: reference)
+                                    } label: {
+                                        if duration == durationPreference(for: reference) {
+                                            Label(duration.title, systemImage: "checkmark")
+                                        } else {
+                                            Text(duration.title)
+                                        }
+                                    }
+                                }
+                            } label: {
+                                Label(
+                                    durationPreference(for: reference).title,
+                                    systemImage: "clock"
+                                )
+                                .font(.caption)
+                            }
+                        }
+                        Spacer()
+                        Button { moveOrder(from: index, by: -1) } label: {
+                            Image(systemName: "chevron.up")
+                        }
+                        .disabled(index == 0)
+                        .buttonStyle(.borderless)
+                        Button { moveOrder(from: index, by: 1) } label: {
+                            Image(systemName: "chevron.down")
+                        }
+                        .disabled(index == plan.visitOrder.count - 1)
+                        .buttonStyle(.borderless)
+                    }
+                }
+            }
+        } header: {
+            Label("Visit Order", systemImage: "arrow.up.arrow.down")
+        } footer: {
+            Text(totalRequestedStopCount == 1
+                 ? "Choose how long you want to stay. Add another stop to arrange the order."
+                 : "Choose the order and how long to stay at each stop.")
+        }
+        .onAppear { plan.syncVisitOrder() }
     }
 
 
@@ -484,72 +475,6 @@ struct PlanSetupView: View {
             .foregroundStyle(
                 .secondary
             )
-
-
-            // MARK: DYNAMIC START WITH
-
-            if totalRequestedStopCount > 1 {
-
-                Picker(
-                    "Start with",
-                    selection:
-                        $plan
-                            .intent
-                            .startPreference
-                ) {
-
-                    Text(
-                        "No preference"
-                    )
-                    .tag(
-                        StartPreference
-                            .noPreference
-                    )
-
-
-                    if !plan
-                        .anchors
-                        .isEmpty {
-
-                        Text(
-                            "Must-visits first"
-                        )
-                        .tag(
-                            StartPreference
-                                .mustVisitsFirst
-                        )
-                    }
-
-
-                    ForEach(
-                        plan.flexibleStops
-                    ) {
-                        stop in
-
-
-                        Text(
-                            "\(flexiblePreferenceName(stop)) first"
-                        )
-                        .tag(
-                            StartPreference
-                                .flexibleStop(
-                                    stop.id
-                                )
-                        )
-                    }
-                }
-
-
-                Text(
-                    startPreferenceDescription
-                )
-                .font(
-                    .caption
-                )
-                .foregroundStyle(
-                    .secondary
-                )
-            }
 
 
             Picker(
@@ -859,6 +784,8 @@ struct PlanSetupView: View {
             )
         )
 
+        plan.syncVisitOrder()
+
 
         searchService.clear()
 
@@ -878,6 +805,8 @@ struct PlanSetupView: View {
             $0.id ==
                 anchor.id
         }
+
+        plan.syncVisitOrder()
 
 
         if plan.anchors.isEmpty,
@@ -902,6 +831,7 @@ struct PlanSetupView: View {
                     category
             )
         )
+        plan.syncVisitOrder()
     }
 
 
@@ -931,6 +861,54 @@ struct PlanSetupView: View {
                 $0.id ==
                     id
             }
+
+        plan.syncVisitOrder()
+    }
+
+    private func orderTitle(_ reference: PlanRequest.StopReference) -> String {
+        switch reference {
+        case .anchor(let id):
+            return plan.anchors.first(where: { $0.place.id == id })?.place.name ?? "Place"
+        case .flexible(let id):
+            guard let stop = plan.flexibleStops.first(where: { $0.id == id }) else { return "Stop" }
+            return flexiblePreferenceName(stop)
+        }
+    }
+
+    private func moveOrder(from index: Int, by offset: Int) {
+        let destination = index + offset
+        guard plan.visitOrder.indices.contains(index), plan.visitOrder.indices.contains(destination) else { return }
+        plan.visitOrder.swapAt(index, destination)
+    }
+
+    private var durationChoices: [StopDurationPreference] {
+        [.unspecified, .thirtyMinutes, .oneHour, .ninetyMinutes, .twoHours,
+         .threeHours, .fourHours, .fiveHours, .sixHours]
+    }
+
+    private func durationPreference(
+        for reference: PlanRequest.StopReference
+    ) -> StopDurationPreference {
+        switch reference {
+        case .anchor(let id):
+            return plan.anchors.first(where: { $0.place.id == id })?.stayDuration ?? .unspecified
+        case .flexible(let id):
+            return plan.flexibleStops.first(where: { $0.id == id })?.stayDuration ?? .unspecified
+        }
+    }
+
+    private func setDuration(
+        _ duration: StopDurationPreference,
+        for reference: PlanRequest.StopReference
+    ) {
+        switch reference {
+        case .anchor(let id):
+            guard let index = plan.anchors.firstIndex(where: { $0.place.id == id }) else { return }
+            plan.anchors[index].stayDuration = duration
+        case .flexible(let id):
+            guard let index = plan.flexibleStops.firstIndex(where: { $0.id == id }) else { return }
+            plan.flexibleStops[index].stayDuration = duration
+        }
     }
 
 

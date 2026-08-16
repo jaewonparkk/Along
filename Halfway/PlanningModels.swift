@@ -11,16 +11,21 @@ struct AnchorStop: Identifiable {
 
     var isRequired: Bool
 
+    var stayDuration:
+        StopDurationPreference
+
 
     init(
         id: UUID = UUID(),
         place: PlannedPlace,
-        isRequired: Bool = true
+        isRequired: Bool = true,
+        stayDuration: StopDurationPreference = .unspecified
     ) {
 
         self.id = id
         self.place = place
         self.isRequired = isRequired
+        self.stayDuration = stayDuration
     }
 }
 
@@ -33,9 +38,7 @@ enum FlexibleStopCategory:
     Identifiable,
     Hashable {
 
-    case breakfast
-    case lunch
-    case dinner
+    case food
     case coffee
     case dessert
     case drinks
@@ -54,14 +57,8 @@ enum FlexibleStopCategory:
 
         switch self {
 
-        case .breakfast:
-            return "Breakfast"
-
-        case .lunch:
-            return "Lunch"
-
-        case .dinner:
-            return "Dinner"
+        case .food:
+            return "Eat"
 
         case .coffee:
             return "Coffee"
@@ -91,11 +88,7 @@ enum FlexibleStopCategory:
 
         switch self {
 
-        case .breakfast:
-            return "sunrise.fill"
-
-        case .lunch,
-             .dinner:
+        case .food:
             return "fork.knife"
 
         case .coffee:
@@ -126,14 +119,8 @@ enum FlexibleStopCategory:
 
         switch self {
 
-        case .breakfast:
-            return "e.g. brunch, pancakes"
-
-        case .lunch:
-            return "e.g. Italian, sandwiches, Korean"
-
-        case .dinner:
-            return "e.g. steak, sushi, cozy Italian"
+        case .food:
+            return "e.g. brunch, sandwiches, steak & wine"
 
         case .coffee:
             return "e.g. matcha, pretty, quiet"
@@ -159,85 +146,6 @@ enum FlexibleStopCategory:
     }
 
 
-    var isMeal: Bool {
-
-        switch self {
-
-        case .breakfast,
-             .lunch,
-             .dinner:
-            return true
-
-        default:
-            return false
-        }
-    }
-
-
-    // MARK: Natural Timing
-
-    /*
-     This is NOT a hardcoded place rule.
-
-     It is semantic meaning:
-
-     Breakfast ≠ 8 PM
-     Dinner ≠ 1 PM
-
-     User-specified timing overrides this.
-     */
-
-    var naturalTimeWindowMinutes:
-        ClosedRange<Int>? {
-
-        switch self {
-
-        case .breakfast:
-            return
-                (7 * 60)...(11 * 60)
-
-
-        case .lunch:
-            return
-                (11 * 60)...(14 * 60)
-
-
-        case .dinner:
-            return
-                (17 * 60)...(21 * 60)
-
-
-        case .drinks:
-            return
-                (17 * 60)...(23 * 60)
-
-
-        default:
-            return nil
-        }
-    }
-
-
-    var naturalTimingLabel: String? {
-
-        switch self {
-
-        case .breakfast:
-            return "Breakfast time"
-
-        case .lunch:
-            return "Lunch time"
-
-        case .dinner:
-            return "Dinner time"
-
-        case .drinks:
-            return "Evening"
-
-        default:
-            return nil
-        }
-    }
 }
 
 
@@ -334,6 +242,10 @@ enum StopDurationPreference:
     case oneHour
     case ninetyMinutes
     case twoHours
+    case threeHours
+    case fourHours
+    case fiveHours
+    case sixHours
     case custom
 
 
@@ -366,8 +278,36 @@ enum StopDurationPreference:
         case .twoHours:
             return 120
 
+        case .threeHours:
+            return 180
+
+        case .fourHours:
+            return 240
+
+        case .fiveHours:
+            return 300
+
+        case .sixHours:
+            return 360
+
         case .custom:
             return customMinutes
+        }
+    }
+
+    var title: String {
+        switch self {
+        case .unspecified: return "Suggested"
+        case .quick: return "15 min"
+        case .thirtyMinutes: return "30 min"
+        case .oneHour: return "1 hr"
+        case .ninetyMinutes: return "1.5 hr"
+        case .twoHours: return "2 hr"
+        case .threeHours: return "3 hr"
+        case .fourHours: return "4 hr"
+        case .fiveHours: return "5 hr"
+        case .sixHours: return "6 hr"
+        case .custom: return "Custom"
         }
     }
 }
@@ -695,6 +635,18 @@ struct PlanIntent {
 
 struct PlanRequest {
 
+    enum StopReference: Hashable, Identifiable {
+        case anchor(UUID)
+        case flexible(UUID)
+
+        var id: String {
+            switch self {
+            case .anchor(let id): return "anchor-\(id)"
+            case .flexible(let id): return "flexible-\(id)"
+            }
+        }
+    }
+
     var anchors:
         [AnchorStop]
 
@@ -704,6 +656,9 @@ struct PlanRequest {
     var intent:
         PlanIntent
 
+    var visitOrder:
+        [StopReference]
+
 
     init(
         anchors:
@@ -711,7 +666,9 @@ struct PlanRequest {
         flexibleStops:
             [FlexibleStop] = [],
         intent:
-            PlanIntent = PlanIntent()
+            PlanIntent = PlanIntent(),
+        visitOrder:
+            [StopReference] = []
     ) {
 
         self.anchors =
@@ -722,6 +679,9 @@ struct PlanRequest {
 
         self.intent =
             intent
+
+        self.visitOrder =
+            visitOrder
     }
 
 
@@ -730,6 +690,19 @@ struct PlanRequest {
 
         anchors.map {
             $0.place
+        }
+    }
+
+    mutating func syncVisitOrder() {
+        let valid = Set(
+            anchors.map { StopReference.anchor($0.place.id) }
+            + flexibleStops.map { StopReference.flexible($0.id) }
+        )
+        visitOrder.removeAll { !valid.contains($0) }
+        for reference in anchors.map({ StopReference.anchor($0.place.id) })
+            + flexibleStops.map({ StopReference.flexible($0.id) })
+            where !visitOrder.contains(reference) {
+            visitOrder.append(reference)
         }
     }
 }
@@ -823,6 +796,9 @@ struct ScheduledStop:
 
     let requestedTiming:
         String?
+
+    let warning:
+        String?
 }
 
 
@@ -888,6 +864,8 @@ struct GeneratedItinerary {
             $0.timingStatus
             ==
             .outsidePreference
+            ||
+            $0.warning != nil
         }
     }
 }

@@ -303,8 +303,19 @@ final class PlanningEngine:
                                 anchors:
                                     anchorCandidates,
 
+                                anchorStayMinutes:
+                                    Dictionary(
+                                        uniqueKeysWithValues:
+                                            plan.anchors.map {
+                                                ($0.place.id, $0.stayDuration.minutes(customMinutes: 120) ?? 120)
+                                            }
+                                    ),
+
                                 flexiblePools:
                                     flexiblePools,
+
+                                visitOrder:
+                                    plan.visitOrder,
 
                                 intent:
                                     plan.intent,

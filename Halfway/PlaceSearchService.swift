@@ -55,6 +55,9 @@ final class PlaceSearchService:
     var referenceName =
         "Current Location"
 
+    @Published private(set)
+    var searchMessage: String?
+
 
     // MARK: Apple Search
 
@@ -64,6 +67,9 @@ final class PlaceSearchService:
 
     private var activeSearches:
         [MKLocalSearch] = []
+
+    private var completionWorkItem:
+        DispatchWorkItem?
 
 
     // MARK: Location Context
@@ -130,7 +136,7 @@ final class PlaceSearchService:
         $query
             .removeDuplicates()
             .debounce(
-                for: .milliseconds(250),
+                for: .milliseconds(450),
                 scheduler: DispatchQueue.main
             )
             .sink {
@@ -165,6 +171,8 @@ final class PlaceSearchService:
 
         searchGeneration += 1
 
+        completionWorkItem?.cancel()
+
 
         cancelActiveSearches()
 
@@ -186,6 +194,8 @@ final class PlaceSearchService:
 
         isSearching =
             true
+
+        searchMessage = nil
 
 
         /*
@@ -356,26 +366,35 @@ final class PlaceSearchService:
             Array(
                 completer
                     .results
-                    .prefix(12)
+                    .prefix(5)
             )
 
 
         guard !completions.isEmpty else {
 
-            performFallbackSearch(
-                generation:
-                    currentGeneration
-            )
+            completionWorkItem?.cancel()
+
+            let workItem = DispatchWorkItem { [weak self] in
+                guard let self, currentGeneration == self.searchGeneration else { return }
+                self.performFallbackSearch(generation: currentGeneration)
+            }
+
+            completionWorkItem = workItem
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.45, execute: workItem)
 
             return
         }
 
 
-        resolveCompletions(
-            completions,
-            generation:
-                currentGeneration
-        )
+        completionWorkItem?.cancel()
+
+        let workItem = DispatchWorkItem { [weak self] in
+            guard let self, currentGeneration == self.searchGeneration else { return }
+            self.resolveCompletions(completions, generation: currentGeneration)
+        }
+
+        completionWorkItem = workItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3, execute: workItem)
     }
 
 
@@ -393,10 +412,8 @@ final class PlaceSearchService:
         )
 
 
-        performFallbackSearch(
-            generation:
-                searchGeneration
-        )
+        isSearching = false
+        searchMessage = "Search is temporarily busy. Wait a moment and try again."
     }
 
 
@@ -1080,6 +1097,9 @@ final class PlaceSearchService:
 
         searchGeneration += 1
 
+        completionWorkItem?.cancel()
+        completionWorkItem = nil
+
 
         cancelActiveSearches()
 
@@ -1098,5 +1118,7 @@ final class PlaceSearchService:
 
         isSearching =
             false
+
+        searchMessage = nil
     }
 }

@@ -1,0 +1,2798 @@
+// swift-interface-format-version: 1.0
+// swift-compiler-version: Apple Swift version 6.3.1 (swiftlang-6.3.1.1.2 clang-2100.0.123.102)
+// swift-module-flags: -target arm64-apple-ios16.0-simulator -enable-objc-interop -enable-library-evolution -swift-version 6 -O -enable-experimental-feature AccessLevelOnImport -module-name GooglePlacesSwift -package-name googlemac/iPhone/Maps/SDK/PlacesSwift
+// swift-module-flags-ignorable: -no-verify-emitted-module-interface -formal-cxx-interoperability-mode=off -interface-compiler-version 6.3.1
+import Combine
+import CoreLocation
+import Foundation
+import Swift
+import SwiftUI
+import UIKit
+import _Concurrency
+import _StringProcessing
+import _SwiftConcurrencyShims
+import os
+public protocol AISummary : Swift.CustomStringConvertible, Swift.Hashable, Swift.Sendable {
+  var flagContentURI: Foundation.URL? { get }
+  var disclosureText: Swift.String? { get }
+  var disclosureTextLanguageCode: Swift.String? { get }
+}
+public struct AccessibilityOptions {
+  public var hasWheelchairAccessibleParking: Swift.Bool? {
+    get
+  }
+  public var hasWheelchairAccessibleEntrance: Swift.Bool? {
+    get
+  }
+  public var hasWheelchairAccessibleRestroom: Swift.Bool? {
+    get
+  }
+  public var hasWheelchairAccessibleSeating: Swift.Bool? {
+    get
+  }
+}
+extension GooglePlacesSwift.AccessibilityOptions : Swift.Hashable, Swift.Equatable, Swift.CustomStringConvertible {
+  public static func == (lhs: GooglePlacesSwift.AccessibilityOptions, rhs: GooglePlacesSwift.AccessibilityOptions) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var description: Swift.String {
+    get
+  }
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public struct AddressComponent : Swift.Sendable {
+  public var types: Swift.Set<GooglePlacesSwift.PlaceType> {
+    get
+  }
+  public var name: Swift.String {
+    get
+  }
+  public var shortName: Swift.String? {
+    get
+  }
+  public init(types: Swift.Set<GooglePlacesSwift.PlaceType>, name: Swift.String, shortName: Swift.String? = nil)
+}
+extension GooglePlacesSwift.AddressComponent : Swift.CustomStringConvertible {
+  public var description: Swift.String {
+    get
+  }
+}
+extension GooglePlacesSwift.AddressComponent : Swift.Equatable, Swift.Hashable {
+  public static func == (lhs: GooglePlacesSwift.AddressComponent, rhs: GooglePlacesSwift.AddressComponent) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public struct AddressDescriptor : Swift.Sendable {
+  public var landmarks: [GooglePlacesSwift.Landmark] {
+    get
+  }
+  public var areas: [GooglePlacesSwift.Area] {
+    get
+  }
+}
+extension GooglePlacesSwift.AddressDescriptor : Swift.Hashable, Swift.Equatable, Swift.CustomStringConvertible {
+  public static func == (lhs: GooglePlacesSwift.AddressDescriptor, rhs: GooglePlacesSwift.AddressDescriptor) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var description: Swift.String {
+    get
+  }
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public protocol AppCheckTokenProvider : Swift.Sendable {
+  func fetchAppCheckToken() async throws -> Swift.String
+}
+public struct Area : Swift.Sendable {
+  public var resourceName: Swift.String? {
+    get
+  }
+  public var placeID: Swift.String? {
+    get
+  }
+  public var displayName: Swift.String? {
+    get
+  }
+  public var displayNameLanguageCode: Swift.String? {
+    get
+  }
+  public enum Containment : Swift.Sendable {
+    case unspecified
+    case within
+    case outskirts
+    case near
+    public func hash(into hasher: inout Swift.Hasher)
+    public var hashValue: Swift.Int {
+      get
+    }
+  }
+  public var containment: GooglePlacesSwift.Area.Containment? {
+    get
+  }
+}
+extension GooglePlacesSwift.Area : Swift.Hashable, Swift.Equatable, Swift.CustomStringConvertible {
+  public static func == (lhs: GooglePlacesSwift.Area, rhs: GooglePlacesSwift.Area) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var description: Swift.String {
+    get
+  }
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+extension GooglePlacesSwift.Area.Containment : Swift.Equatable {
+  public static func == (a: GooglePlacesSwift.Area.Containment, b: GooglePlacesSwift.Area.Containment) -> Swift.Bool
+}
+public struct AuthorAttribution : Swift.Sendable {
+  public init(displayName: Swift.String, url: Foundation.URL? = nil, photoUrl: Foundation.URL? = nil)
+  public var displayName: Swift.String {
+    get
+  }
+  public var url: Foundation.URL? {
+    get
+  }
+  public var photoUrl: Foundation.URL? {
+    get
+  }
+}
+extension GooglePlacesSwift.AuthorAttribution : Swift.Hashable, Swift.Equatable, Swift.CustomStringConvertible {
+  public static func == (lhs: GooglePlacesSwift.AuthorAttribution, rhs: GooglePlacesSwift.AuthorAttribution) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var description: Swift.String {
+    get
+  }
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public struct AutocompleteFilter : Swift.Sendable {
+  public var types: Swift.Set<GooglePlacesSwift.PlaceType>? {
+    get
+  }
+  public var countries: Swift.Set<Swift.String>? {
+    get
+  }
+  public var origin: _LocationEssentials.CLLocation? {
+    get
+  }
+  public var coordinateRegionBias: (any GooglePlacesSwift.CoordinateRegionBias)? {
+    get
+  }
+  public var coordinateRegionRestriction: (any GooglePlacesSwift.CoordinateRegionRestriction)? {
+    get
+  }
+  public var regionCode: Swift.String? {
+    get
+  }
+  @available(*, deprecated, message: "Use AutocompleteRequest inputOffset instead.")
+  public var inputOffset: Swift.Int {
+    get
+  }
+  public var shouldIncludePureServiceAreaBusinesses: Swift.Bool {
+    get
+  }
+  @available(*, deprecated)
+  public init(types: Swift.Set<GooglePlacesSwift.PlaceType>? = nil, countries: Swift.Set<Swift.String>? = nil, origin: _LocationEssentials.CLLocation? = nil, coordinateRegionBias: (any GooglePlacesSwift.CoordinateRegionBias)? = nil, coordinateRegionRestriction: (any GooglePlacesSwift.CoordinateRegionRestriction)? = nil, regionCode: Swift.String? = nil, inputOffset: Swift.Int)
+  public init(types: Swift.Set<GooglePlacesSwift.PlaceType>? = nil, countries: Swift.Set<Swift.String>? = nil, origin: _LocationEssentials.CLLocation? = nil, coordinateRegionBias: (any GooglePlacesSwift.CoordinateRegionBias)? = nil, coordinateRegionRestriction: (any GooglePlacesSwift.CoordinateRegionRestriction)? = nil, regionCode: Swift.String? = nil, shouldIncludePureServiceAreaBusinesses: Swift.Bool = false)
+}
+extension Foundation.NSAttributedString.Key {
+  public static let autocompleteMatch: Foundation.NSAttributedString.Key
+}
+extension Foundation.AttributeScopes {
+  public struct GooglePlacesAttributes : Foundation.AttributeScope {
+    public let autocompleteMatch: Foundation.AttributeScopes.GooglePlacesAttributes.AutocompleteMatchAttribute
+    @available(iOS 15, tvOS 15, watchOS 8, macOS 12, *)
+    public typealias DecodingConfiguration = Foundation.AttributeScopeCodableConfiguration
+    @available(iOS 15, tvOS 15, watchOS 8, macOS 12, *)
+    public typealias EncodingConfiguration = Foundation.AttributeScopeCodableConfiguration
+  }
+  public var googlePlaces: Foundation.AttributeScopes.GooglePlacesAttributes.Type {
+    get
+  }
+}
+extension Foundation.AttributeScopes.GooglePlacesAttributes {
+  public enum AutocompleteMatchAttribute : Foundation.CodableAttributedStringKey, Foundation.MarkdownDecodableAttributedStringKey {
+    public typealias Value = Swift.String
+    public static let name: Swift.String
+  }
+}
+public struct AutocompletePlaceSuggestion : Swift.Sendable {
+  public var legacyAttributedFullText: Foundation.NSAttributedString {
+    get
+  }
+  public var legacyAttributedPrimaryText: Foundation.NSAttributedString {
+    get
+  }
+  public var legacyAttributedSecondaryText: Foundation.NSAttributedString? {
+    get
+  }
+  public var attributedFullText: Foundation.AttributedString {
+    get
+  }
+  public var attributedPrimaryText: Foundation.AttributedString {
+    get
+  }
+  public var attributedSecondaryText: Foundation.AttributedString? {
+    get
+  }
+  public var placeID: Swift.String {
+    get
+  }
+  public var types: Swift.Set<GooglePlacesSwift.PlaceType> {
+    get
+  }
+  public var distance: Foundation.Measurement<Foundation.UnitLength>? {
+    get
+  }
+  public init(placeID: Swift.String, types: Swift.Set<GooglePlacesSwift.PlaceType>, distance: Foundation.Measurement<Foundation.UnitLength>?, primaryText: Foundation.AttributedString, secondaryText: Foundation.AttributedString?)
+  public init(placeID: Swift.String, types: Swift.Set<GooglePlacesSwift.PlaceType>, distance: Foundation.Measurement<Foundation.UnitLength>?, primaryText: Foundation.NSAttributedString, secondaryText: Foundation.NSAttributedString?)
+}
+extension GooglePlacesSwift.AutocompletePlaceSuggestion : Swift.CustomStringConvertible, Swift.Equatable, Swift.Hashable {
+  public var description: Swift.String {
+    get
+  }
+  public static func == (lhs: GooglePlacesSwift.AutocompletePlaceSuggestion, rhs: GooglePlacesSwift.AutocompletePlaceSuggestion) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public struct AutocompleteRequest : Swift.Sendable {
+  public var query: Swift.String {
+    get
+  }
+  public var sessionToken: GooglePlacesSwift.AutocompleteSessionToken? {
+    get
+  }
+  public var filter: GooglePlacesSwift.AutocompleteFilter? {
+    get
+  }
+  public var inputOffset: Swift.Int {
+    get
+  }
+  public init(query: Swift.String, sessionToken: GooglePlacesSwift.AutocompleteSessionToken? = nil, filter: GooglePlacesSwift.AutocompleteFilter? = nil, inputOffset: Swift.Int = 0)
+}
+public struct AutocompleteSessionToken : Swift.Sendable {
+  public init()
+}
+extension GooglePlacesSwift.AutocompleteSessionToken : Swift.Equatable, Swift.Hashable {
+  public static func == (lhs: GooglePlacesSwift.AutocompleteSessionToken, rhs: GooglePlacesSwift.AutocompleteSessionToken) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+extension GooglePlacesSwift.AutocompleteSessionToken : Swift.CustomStringConvertible {
+  public var description: Swift.String {
+    get
+  }
+}
+public enum AutocompleteSuggestion : Swift.Equatable, Swift.Hashable, Swift.Sendable {
+  case place(_: GooglePlacesSwift.AutocompletePlaceSuggestion)
+  public static func == (a: GooglePlacesSwift.AutocompleteSuggestion, b: GooglePlacesSwift.AutocompleteSuggestion) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public enum EVConnectorType : Swift.Int, Swift.CaseIterable, Swift.Sendable {
+  case unspecified
+  case j1772
+  case type2
+  case chaDeMO
+  case ccsCombo1
+  case ccsCombo2
+  case nacs
+  case tesla
+  case unspecifiedGBT
+  case unspecifiedWallOutlet
+  case other
+  public init?(rawValue: Swift.Int)
+  public typealias AllCases = [GooglePlacesSwift.EVConnectorType]
+  public typealias RawValue = Swift.Int
+  nonisolated public static var allCases: [GooglePlacesSwift.EVConnectorType] {
+    get
+  }
+  public var rawValue: Swift.Int {
+    get
+  }
+}
+public struct ConnectorAggregation : Swift.Sendable {
+  public let type: GooglePlacesSwift.EVConnectorType
+  public let maxChargeRateKW: Swift.Double
+  public let count: Swift.UInt
+  public let availableCount: Swift.UInt
+  public let outOfServiceCount: Swift.UInt
+  public let availabilityLastUpdateTime: Foundation.Date?
+  public init(type: GooglePlacesSwift.EVConnectorType, maxChargeRateKW: Swift.Double, count: Swift.UInt, availableCount: Swift.UInt, outOfServiceCount: Swift.UInt, availabilityLastUpdateTime: Foundation.Date?)
+}
+extension GooglePlacesSwift.ConnectorAggregation : Swift.Hashable, Swift.Equatable, Swift.CustomStringConvertible {
+  public static func == (lhs: GooglePlacesSwift.ConnectorAggregation, rhs: GooglePlacesSwift.ConnectorAggregation) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var description: Swift.String {
+    get
+  }
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public protocol ConsumerAlertProtocol : Swift.CustomStringConvertible, Swift.Hashable, Swift.Sendable {
+  var overview: Swift.String? { get }
+  var details: GooglePlacesSwift.ConsumerAlertDetails? { get }
+  var languageCode: Swift.String? { get }
+}
+public struct ConsumerAlert : Swift.Sendable {
+  public var overview: Swift.String? {
+    get
+  }
+  public var details: GooglePlacesSwift.ConsumerAlertDetails? {
+    get
+  }
+  public var languageCode: Swift.String? {
+    get
+  }
+}
+extension GooglePlacesSwift.ConsumerAlert : Swift.Hashable, Swift.Equatable, Swift.CustomStringConvertible {
+  public static func == (lhs: GooglePlacesSwift.ConsumerAlert, rhs: GooglePlacesSwift.ConsumerAlert) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var description: Swift.String {
+    get
+  }
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public struct ConsumerAlertDetails : Swift.Sendable {
+  public var title: Swift.String? {
+    get
+  }
+  public var alertDescription: Swift.String? {
+    get
+  }
+  public var aboutLinkTitle: Swift.String? {
+    get
+  }
+  public var aboutLinkURI: Foundation.URL? {
+    get
+  }
+}
+extension GooglePlacesSwift.ConsumerAlertDetails : Swift.Hashable, Swift.Equatable, Swift.CustomStringConvertible {
+  public static func == (lhs: GooglePlacesSwift.ConsumerAlertDetails, rhs: GooglePlacesSwift.ConsumerAlertDetails) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var description: Swift.String {
+    get
+  }
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public struct ContainingPlace : Swift.Sendable {
+  public var resourceName: Swift.String? {
+    get
+  }
+  public var placeID: Swift.String? {
+    get
+  }
+}
+extension GooglePlacesSwift.ContainingPlace : Swift.Hashable, Swift.Equatable, Swift.CustomStringConvertible {
+  public static func == (lhs: GooglePlacesSwift.ContainingPlace, rhs: GooglePlacesSwift.ContainingPlace) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var description: Swift.String {
+    get
+  }
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public struct ContentBlock : Swift.Sendable {
+  public var content: Swift.String? {
+    get
+  }
+  public var contentLanguageCode: Swift.String? {
+    get
+  }
+  public var referencedPlaceResourceNames: [Swift.String]? {
+    get
+  }
+  public var referencedPlaceIDs: [Swift.String]? {
+    get
+  }
+}
+extension GooglePlacesSwift.ContentBlock : Swift.Hashable, Swift.Equatable, Swift.CustomStringConvertible {
+  public static func == (lhs: GooglePlacesSwift.ContentBlock, rhs: GooglePlacesSwift.ContentBlock) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var description: Swift.String {
+    get
+  }
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public protocol CoordinateRegion : Swift.Hashable {
+}
+public protocol CoordinateRegionBias : GooglePlacesSwift.CoordinateRegion {
+  func bias() -> Foundation.URLQueryItem
+}
+public protocol CoordinateRegionRestriction : GooglePlacesSwift.CoordinateRegion {
+  func restriction() -> Foundation.URLQueryItem
+}
+public struct RectangularCoordinateRegion : GooglePlacesSwift.CoordinateRegion, Swift.Sendable {
+  public var northEast: _LocationEssentials.CLLocationCoordinate2D {
+    get
+  }
+  public var southWest: _LocationEssentials.CLLocationCoordinate2D {
+    get
+  }
+  public var isValid: Swift.Bool {
+    get
+  }
+  public init?(northEast: _LocationEssentials.CLLocationCoordinate2D, southWest: _LocationEssentials.CLLocationCoordinate2D)
+  public static func == (lhs: GooglePlacesSwift.RectangularCoordinateRegion, rhs: GooglePlacesSwift.RectangularCoordinateRegion) -> Swift.Bool
+}
+extension GooglePlacesSwift.RectangularCoordinateRegion : GooglePlacesSwift.CoordinateRegionBias, GooglePlacesSwift.CoordinateRegionRestriction {
+  public func bias() -> Foundation.URLQueryItem
+  public func restriction() -> Foundation.URLQueryItem
+}
+extension GooglePlacesSwift.RectangularCoordinateRegion : Swift.Hashable {
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public struct CircularCoordinateRegion : GooglePlacesSwift.CoordinateRegion, Swift.Sendable {
+  public var center: _LocationEssentials.CLLocationCoordinate2D {
+    get
+  }
+  public var radius: _LocationEssentials.CLLocationDistance {
+    get
+  }
+  public init(center: _LocationEssentials.CLLocationCoordinate2D, radius: _LocationEssentials.CLLocationDistance)
+  public static func == (lhs: GooglePlacesSwift.CircularCoordinateRegion, rhs: GooglePlacesSwift.CircularCoordinateRegion) -> Swift.Bool
+}
+extension GooglePlacesSwift.CircularCoordinateRegion : GooglePlacesSwift.CoordinateRegionBias, GooglePlacesSwift.CoordinateRegionRestriction {
+  public func bias() -> Foundation.URLQueryItem
+  public func restriction() -> Foundation.URLQueryItem
+}
+extension GooglePlacesSwift.CircularCoordinateRegion : Swift.Hashable {
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public struct EVChargeAmenitySummary : GooglePlacesSwift.AISummary {
+  public var overview: GooglePlacesSwift.ContentBlock? {
+    get
+  }
+  public var coffee: GooglePlacesSwift.ContentBlock? {
+    get
+  }
+  public var restaurant: GooglePlacesSwift.ContentBlock? {
+    get
+  }
+  public var store: GooglePlacesSwift.ContentBlock? {
+    get
+  }
+  public var flagContentURI: Foundation.URL? {
+    get
+  }
+  public var disclosureText: Swift.String? {
+    get
+  }
+  public var disclosureTextLanguageCode: Swift.String? {
+    get
+  }
+}
+extension GooglePlacesSwift.EVChargeAmenitySummary : Swift.Hashable, Swift.Equatable, Swift.CustomStringConvertible {
+  public static func == (lhs: GooglePlacesSwift.EVChargeAmenitySummary, rhs: GooglePlacesSwift.EVChargeAmenitySummary) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var description: Swift.String {
+    get
+  }
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public struct EVChargeOptions : Swift.Sendable {
+  public var connectorCount: Swift.Int {
+    get
+  }
+  public var connectorAggregations: [GooglePlacesSwift.ConnectorAggregation]? {
+    get
+  }
+}
+extension GooglePlacesSwift.EVChargeOptions : Swift.Hashable, Swift.Equatable, Swift.CustomStringConvertible {
+  public static func == (lhs: GooglePlacesSwift.EVChargeOptions, rhs: GooglePlacesSwift.EVChargeOptions) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var description: Swift.String {
+    get
+  }
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public struct EVSearchOptions : Swift.Sendable {
+  public var minimumChargingRateKW: Swift.Double? {
+    get
+  }
+  public var connectorTypes: [GooglePlacesSwift.EVConnectorType]? {
+    get
+  }
+  public init(minimumChargingRateKW: Swift.Double? = nil, connectorTypes: [GooglePlacesSwift.EVConnectorType]? = nil)
+}
+extension GooglePlacesSwift.EVSearchOptions : Swift.CustomStringConvertible, Swift.Equatable, Swift.Hashable {
+  public static func == (lhs: GooglePlacesSwift.EVSearchOptions, rhs: GooglePlacesSwift.EVSearchOptions) -> Swift.Bool
+  public var description: Swift.String {
+    get
+  }
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public struct EncodedPolyline : Swift.Sendable, GooglePlacesSwift.Polyline {
+  public var encodedPolylineString: Swift.String {
+    get
+  }
+  public init(encodedPolylineString: Swift.String)
+}
+extension GooglePlacesSwift.EncodedPolyline : Swift.CustomStringConvertible, Swift.Equatable, Swift.Hashable {
+  public static func == (lhs: GooglePlacesSwift.EncodedPolyline, rhs: GooglePlacesSwift.EncodedPolyline) -> Swift.Bool
+  public var description: Swift.String {
+    get
+  }
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+@available(*, deprecated, message: "This struct is deprecated, please use the Place Details component (https://developers.google.com/maps/documentation/places/ios-sdk/place-details-ui-kit) instead.")
+public struct FetchPhotoRequest : Swift.Sendable {
+  public init(photo: GooglePlacesSwift.Photo, maxSize: CoreFoundation.CGSize)
+}
+public struct FetchPlaceRequest : Swift.Sendable {
+  public init(placeID: Swift.String, placeProperties: [GooglePlacesSwift.PlaceProperty], sessionToken: GooglePlacesSwift.AutocompleteSessionToken? = nil)
+  public var placeID: Swift.String {
+    get
+  }
+  public var placeProperties: [GooglePlacesSwift.PlaceProperty] {
+    get
+  }
+  public var sessionToken: GooglePlacesSwift.AutocompleteSessionToken? {
+    get
+  }
+}
+public struct FuelOptions : Swift.Sendable {
+  public var fuelPrices: [GooglePlacesSwift.FuelPrice] {
+    get
+  }
+}
+extension GooglePlacesSwift.FuelOptions : Swift.Hashable, Swift.Equatable, Swift.CustomStringConvertible {
+  public static func == (lhs: GooglePlacesSwift.FuelOptions, rhs: GooglePlacesSwift.FuelOptions) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var description: Swift.String {
+    get
+  }
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public enum FuelType : Swift.Int, Swift.CaseIterable, Swift.Sendable {
+  case unspecified
+  case diesel
+  case regularUnleaded
+  case midgrade
+  case premium
+  case sp91
+  case sp91E10
+  case sp92
+  case sp95
+  case sp95E10
+  case sp98
+  case sp99
+  case sp100
+  case lpg
+  case e80
+  case e85
+  case methane
+  case bioDiesel
+  case truckDiesel
+  case dieselPlus
+  case e100
+  public init?(rawValue: Swift.Int)
+  public typealias AllCases = [GooglePlacesSwift.FuelType]
+  public typealias RawValue = Swift.Int
+  nonisolated public static var allCases: [GooglePlacesSwift.FuelType] {
+    get
+  }
+  public var rawValue: Swift.Int {
+    get
+  }
+}
+public struct FuelPrice : Swift.Sendable {
+  public var type: GooglePlacesSwift.FuelType {
+    get
+  }
+  public var price: GooglePlacesSwift.Money {
+    get
+  }
+  public var lastUpdateTime: Foundation.Date? {
+    get
+  }
+}
+extension GooglePlacesSwift.FuelPrice : Swift.Hashable, Swift.Equatable, Swift.CustomStringConvertible {
+  public static func == (lhs: GooglePlacesSwift.FuelPrice, rhs: GooglePlacesSwift.FuelPrice) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var description: Swift.String {
+    get
+  }
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public struct GenerativeSummary : GooglePlacesSwift.AISummary {
+  public let overview: Swift.String?
+  public let overviewLanguageCode: Swift.String?
+  public let flagContentURI: Foundation.URL?
+  public let disclosureText: Swift.String?
+  public let disclosureTextLanguageCode: Swift.String?
+  public init(overview: Swift.String?, overviewLanguageCode: Swift.String?, flagContentURI: Foundation.URL?, disclosureText: Swift.String?, disclosureTextLanguageCode: Swift.String?)
+}
+extension GooglePlacesSwift.GenerativeSummary : Swift.Hashable, Swift.Equatable, Swift.CustomStringConvertible {
+  public static func == (lhs: GooglePlacesSwift.GenerativeSummary, rhs: GooglePlacesSwift.GenerativeSummary) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var description: Swift.String {
+    get
+  }
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public struct GoogleMapsLinks : Swift.Sendable {
+  public var directionsURL: Foundation.URL? {
+    get
+  }
+  public var placeURL: Foundation.URL? {
+    get
+  }
+  public var writeAReviewURL: Foundation.URL? {
+    get
+  }
+  public var reviewsURL: Foundation.URL? {
+    get
+  }
+  public var photosURL: Foundation.URL? {
+    get
+  }
+}
+extension GooglePlacesSwift.GoogleMapsLinks : Swift.Hashable, Swift.Equatable, Swift.CustomStringConvertible {
+  public static func == (lhs: GooglePlacesSwift.GoogleMapsLinks, rhs: GooglePlacesSwift.GoogleMapsLinks) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var description: Swift.String {
+    get
+  }
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public struct IsPlaceOpenRequest : Swift.Sendable {
+  public init(place: GooglePlacesSwift.Place, date: Foundation.Date? = nil)
+  public init(placeID: Swift.String, date: Foundation.Date? = nil)
+  public var place: GooglePlacesSwift.Place? {
+    get
+  }
+  public var placeID: Swift.String? {
+    get
+  }
+  public var date: Foundation.Date? {
+    get
+  }
+}
+public struct IsPlaceOpenResponse : Swift.Sendable {
+  public init(status: Swift.Bool?)
+  public var status: Swift.Bool? {
+    get
+  }
+}
+public struct Landmark : Swift.Sendable {
+  public var resourceName: Swift.String? {
+    get
+  }
+  public var placeID: Swift.String? {
+    get
+  }
+  public var displayName: Swift.String? {
+    get
+  }
+  public var displayNameLanguageCode: Swift.String? {
+    get
+  }
+  public enum SpatialRelationship : Swift.Sendable {
+    case near
+    case within
+    case beside
+    case acrossTheRoad
+    case downTheRoad
+    case aroundTheCorner
+    case behind
+    public func hash(into hasher: inout Swift.Hasher)
+    public var hashValue: Swift.Int {
+      get
+    }
+  }
+  public var spatialRelationship: GooglePlacesSwift.Landmark.SpatialRelationship? {
+    get
+  }
+  public var straightLineDistanceMeters: Swift.Double? {
+    get
+  }
+  public var travelDistanceMeters: Swift.Double? {
+    get
+  }
+}
+extension GooglePlacesSwift.Landmark : Swift.Hashable, Swift.Equatable, Swift.CustomStringConvertible {
+  public static func == (lhs: GooglePlacesSwift.Landmark, rhs: GooglePlacesSwift.Landmark) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var description: Swift.String {
+    get
+  }
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+extension GooglePlacesSwift.Landmark.SpatialRelationship : Swift.Equatable {
+  public static func == (a: GooglePlacesSwift.Landmark.SpatialRelationship, b: GooglePlacesSwift.Landmark.SpatialRelationship) -> Swift.Bool
+}
+public struct Leg : Swift.Sendable {
+  public let duration: Foundation.TimeInterval
+  public let distanceMeters: Swift.UInt
+  public init(duration: Foundation.TimeInterval, distanceMeters: Swift.UInt)
+}
+extension GooglePlacesSwift.Leg : Swift.CustomStringConvertible, Swift.Equatable, Swift.Hashable {
+  public static func == (lhs: GooglePlacesSwift.Leg, rhs: GooglePlacesSwift.Leg) -> Swift.Bool
+  public var description: Swift.String {
+    get
+  }
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public struct Money : Swift.Sendable {
+  public var currencyCode: Swift.String {
+    get
+  }
+  public var units: Swift.Int64 {
+    get
+  }
+  public var nanos: Swift.Int {
+    get
+  }
+}
+extension GooglePlacesSwift.Money : Swift.Hashable, Swift.Equatable, Swift.CustomStringConvertible {
+  public static func == (lhs: GooglePlacesSwift.Money, rhs: GooglePlacesSwift.Money) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var description: Swift.String {
+    get
+  }
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public struct NeighborhoodSummary : GooglePlacesSwift.AISummary {
+  public var overview: GooglePlacesSwift.ContentBlock? {
+    get
+  }
+  public var detailDescription: GooglePlacesSwift.ContentBlock? {
+    get
+  }
+  public var flagContentURI: Foundation.URL? {
+    get
+  }
+  public var disclosureText: Swift.String? {
+    get
+  }
+  public var disclosureTextLanguageCode: Swift.String? {
+    get
+  }
+}
+extension GooglePlacesSwift.NeighborhoodSummary : Swift.Hashable, Swift.Equatable, Swift.CustomStringConvertible {
+  public static func == (lhs: GooglePlacesSwift.NeighborhoodSummary, rhs: GooglePlacesSwift.NeighborhoodSummary) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var description: Swift.String {
+    get
+  }
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public enum OpenNowStatus : Swift.Int {
+  case yes
+  case no
+  case unknown
+  public init?(rawValue: Swift.Int)
+  public typealias RawValue = Swift.Int
+  public var rawValue: Swift.Int {
+    get
+  }
+}
+public enum HoursType : Swift.Int {
+  case access
+  case breakfast
+  case brunch
+  case lunch
+  case dinner
+  case seniorHours
+  case pickup
+  case takeout
+  case delivery
+  case kitchen
+  case onlineServiceHours
+  case driveThrough
+  case happyHour
+  public init?(rawValue: Swift.Int)
+  public typealias RawValue = Swift.Int
+  public var rawValue: Swift.Int {
+    get
+  }
+}
+public enum DayOfWeek : Swift.UInt {
+  case sunday
+  case monday
+  case tuesday
+  case wednesday
+  case thursday
+  case friday
+  case saturday
+  public init?(rawValue: Swift.UInt)
+  public typealias RawValue = Swift.UInt
+  public var rawValue: Swift.UInt {
+    get
+  }
+}
+public struct Time : Swift.Sendable {
+  public var hour: Swift.UInt {
+    get
+  }
+  public var minute: Swift.UInt {
+    get
+  }
+}
+public struct Event : Swift.Sendable {
+  public var day: GooglePlacesSwift.DayOfWeek {
+    get
+  }
+  public var time: GooglePlacesSwift.Time
+}
+public struct Period : Swift.Sendable {
+  public let open: GooglePlacesSwift.Event
+  public let close: GooglePlacesSwift.Event?
+}
+public struct SpecialDay : Swift.Sendable {
+  public var date: Foundation.Date {
+    get
+  }
+  public var isExceptional: Swift.Bool {
+    get
+  }
+}
+public struct OpeningHours : Swift.Sendable {
+  public var periods: [GooglePlacesSwift.Period] {
+    get
+  }
+  public var weekdayText: [Swift.String] {
+    get
+  }
+  public var hoursType: GooglePlacesSwift.HoursType? {
+    get
+  }
+  public var specialDays: [GooglePlacesSwift.SpecialDay] {
+    get
+  }
+  public init(jsonDictionary: [Swift.String : Any])
+}
+extension GooglePlacesSwift.OpeningHours : Swift.CustomStringConvertible, Swift.Equatable, Swift.Hashable {
+  public static func == (lhs: GooglePlacesSwift.OpeningHours, rhs: GooglePlacesSwift.OpeningHours) -> Swift.Bool
+  public var description: Swift.String {
+    get
+  }
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+extension GooglePlacesSwift.Time : Swift.CustomStringConvertible, Swift.Equatable, Swift.Hashable {
+  public static func == (lhs: GooglePlacesSwift.Time, rhs: GooglePlacesSwift.Time) -> Swift.Bool
+  public var description: Swift.String {
+    get
+  }
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+extension GooglePlacesSwift.Event : Swift.CustomStringConvertible, Swift.Equatable, Swift.Hashable {
+  public static func == (lhs: GooglePlacesSwift.Event, rhs: GooglePlacesSwift.Event) -> Swift.Bool
+  public var description: Swift.String {
+    get
+  }
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+extension GooglePlacesSwift.Period : Swift.CustomStringConvertible, Swift.Equatable, Swift.Hashable {
+  public static func == (lhs: GooglePlacesSwift.Period, rhs: GooglePlacesSwift.Period) -> Swift.Bool
+  public var description: Swift.String {
+    get
+  }
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+extension GooglePlacesSwift.SpecialDay : Swift.CustomStringConvertible, Swift.Equatable, Swift.Hashable {
+  public static func == (lhs: GooglePlacesSwift.SpecialDay, rhs: GooglePlacesSwift.SpecialDay) -> Swift.Bool
+  public var description: Swift.String {
+    get
+  }
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public struct Pagination<Response> : Swift.Sendable where Response : GooglePlacesSwift.SearchResponse {
+  public var pageSize: Swift.Int {
+    get
+    set
+  }
+  public var hasNextPage: Swift.Bool {
+    get
+  }
+  public func fetchNextPage() async -> Swift.Result<Response, any Swift.Error>
+}
+extension GooglePlacesSwift.Pagination : Swift.Hashable, Swift.Equatable, Swift.CustomStringConvertible {
+  public static func == (lhs: GooglePlacesSwift.Pagination<Response>, rhs: GooglePlacesSwift.Pagination<Response>) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var description: Swift.String {
+    get
+  }
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public struct ParkingOptions : Swift.Sendable {
+  public var freeParkingLot: Swift.Bool? {
+    get
+  }
+  public var paidParkingLot: Swift.Bool? {
+    get
+  }
+  public var freeStreetParking: Swift.Bool? {
+    get
+  }
+  public var paidStreetParking: Swift.Bool? {
+    get
+  }
+  public var freeGarageParking: Swift.Bool? {
+    get
+  }
+  public var paidGarageParking: Swift.Bool? {
+    get
+  }
+  public var valetParking: Swift.Bool? {
+    get
+  }
+}
+extension GooglePlacesSwift.ParkingOptions : Swift.Hashable, Swift.Equatable, Swift.CustomStringConvertible {
+  public static func == (lhs: GooglePlacesSwift.ParkingOptions, rhs: GooglePlacesSwift.ParkingOptions) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var description: Swift.String {
+    get
+  }
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public struct PaymentOptions : Swift.Sendable {
+  public var acceptsCashOnly: Swift.Bool? {
+    get
+  }
+  public var acceptsCreditCards: Swift.Bool? {
+    get
+  }
+  public var acceptsDebitCards: Swift.Bool? {
+    get
+  }
+  public var acceptsNFC: Swift.Bool? {
+    get
+  }
+}
+extension GooglePlacesSwift.PaymentOptions : Swift.Hashable, Swift.Equatable, Swift.CustomStringConvertible {
+  public static func == (lhs: GooglePlacesSwift.PaymentOptions, rhs: GooglePlacesSwift.PaymentOptions) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var description: Swift.String {
+    get
+  }
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+@available(*, deprecated, message: "This struct is deprecated, please use the Place Details component (https://developers.google.com/maps/documentation/places/ios-sdk/place-details-ui-kit) instead.")
+public struct Photo : Swift.Sendable {
+  public var attributions: Foundation.AttributedString? {
+    get
+  }
+  public var legacyAttributions: Foundation.NSAttributedString? {
+    get
+  }
+  public var authorAttributions: [GooglePlacesSwift.AuthorAttribution] {
+    get
+  }
+  public var maxSize: CoreFoundation.CGSize {
+    get
+  }
+  public init(maxSize: CoreFoundation.CGSize, attributions: Foundation.AttributedString? = nil, authorAttributions: [GooglePlacesSwift.AuthorAttribution] = [])
+  public init(maxSize: CoreFoundation.CGSize, attributions: Foundation.NSAttributedString?, authorAttributions: [GooglePlacesSwift.AuthorAttribution] = [])
+}
+extension GooglePlacesSwift.Photo : Swift.CustomStringConvertible, Swift.Equatable, Swift.Hashable {
+  public static func == (lhs: GooglePlacesSwift.Photo, rhs: GooglePlacesSwift.Photo) -> Swift.Bool
+  public var description: Swift.String {
+    get
+  }
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public enum PriceLevel : Swift.Equatable, Swift.Hashable, Swift.CaseIterable, Swift.Identifiable {
+  case unspecified
+  case free
+  case inexpensive
+  case moderate
+  case expensive
+  case veryExpensive
+  public var id: GooglePlacesSwift.PriceLevel {
+    get
+  }
+  public static func == (a: GooglePlacesSwift.PriceLevel, b: GooglePlacesSwift.PriceLevel) -> Swift.Bool
+  public typealias AllCases = [GooglePlacesSwift.PriceLevel]
+  public typealias ID = GooglePlacesSwift.PriceLevel
+  nonisolated public static var allCases: [GooglePlacesSwift.PriceLevel] {
+    get
+  }
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public enum BusinessStatus : Swift.Equatable, Swift.Hashable, Swift.CaseIterable, Swift.Identifiable {
+  case unknown
+  case operational
+  case closedTemporarily
+  case closedPermanently
+  public var id: GooglePlacesSwift.BusinessStatus {
+    get
+  }
+  public static func == (a: GooglePlacesSwift.BusinessStatus, b: GooglePlacesSwift.BusinessStatus) -> Swift.Bool
+  public typealias AllCases = [GooglePlacesSwift.BusinessStatus]
+  public typealias ID = GooglePlacesSwift.BusinessStatus
+  nonisolated public static var allCases: [GooglePlacesSwift.BusinessStatus] {
+    get
+  }
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public protocol PlaceProtocol : Swift.CustomStringConvertible, Swift.Hashable, Swift.Sendable {
+  var displayName: Swift.String? { get }
+  var placeID: Swift.String? { get }
+  var location: _LocationEssentials.CLLocationCoordinate2D { get }
+  var internationalPhoneNumber: Swift.String? { get }
+  var formattedAddress: Swift.String? { get }
+  var rating: Swift.Float? { get }
+  @available(*, deprecated, message: "This property is deprecated, please use the Place Details component (https://developers.google.com/maps/documentation/places/ios-sdk/place-details-ui-kit) instead.")
+  var reviews: [GooglePlacesSwift.Review] { get }
+  var priceLevel: GooglePlacesSwift.PriceLevel { get }
+  var types: Swift.Set<GooglePlacesSwift.PlaceType> { get }
+  var websiteURL: Foundation.URL? { get }
+  var attributions: Foundation.AttributedString? { get }
+  var legacyAttributions: Foundation.NSAttributedString? { get }
+  var viewportInfo: GooglePlacesSwift.RectangularCoordinateRegion? { get }
+  var addressComponents: [GooglePlacesSwift.AddressComponent]? { get }
+  var plusCode: GooglePlacesSwift.PlusCode? { get }
+  var regularOpeningHours: GooglePlacesSwift.OpeningHours? { get }
+  var currentOpeningHours: GooglePlacesSwift.OpeningHours? { get }
+  var currentSecondaryOpeningHours: [GooglePlacesSwift.OpeningHours]? { get }
+  var numberOfUserRatings: Swift.Int { get }
+  @available(*, deprecated, message: "This property is deprecated, please use the Place Details component (https://developers.google.com/maps/documentation/places/ios-sdk/place-details-ui-kit) instead.")
+  var photos: [GooglePlacesSwift.Photo]? { get }
+  var timeZone: Foundation.TimeZone? { get }
+  var businessStatus: GooglePlacesSwift.BusinessStatus { get }
+  var editorialSummary: Swift.String? { get }
+  var iconBackgroundColor: UIKit.UIColor? { get }
+  var iconMaskURL: Foundation.URL? { get }
+  var supportsTakeout: Swift.Bool? { get }
+  var supportsDelivery: Swift.Bool? { get }
+  var supportsDineIn: Swift.Bool? { get }
+  var supportsCurbsidePickup: Swift.Bool? { get }
+  var isReservable: Swift.Bool? { get }
+  var servesBreakfast: Swift.Bool? { get }
+  var servesLunch: Swift.Bool? { get }
+  var servesDinner: Swift.Bool? { get }
+  var servesBeer: Swift.Bool? { get }
+  var servesWine: Swift.Bool? { get }
+  var servesBrunch: Swift.Bool? { get }
+  var servesVegetarianFood: Swift.Bool? { get }
+  var accessibilityOptions: GooglePlacesSwift.AccessibilityOptions? { get }
+  var isPureServiceAreaBusiness: Swift.Bool? { get }
+  var evChargeOptions: GooglePlacesSwift.EVChargeOptions? { get }
+  var parkingOptions: GooglePlacesSwift.ParkingOptions? { get }
+  var evChargeAmenitySummary: GooglePlacesSwift.EVChargeAmenitySummary? { get }
+  var generativeSummary: GooglePlacesSwift.GenerativeSummary? { get }
+  var neighborhoodSummary: GooglePlacesSwift.NeighborhoodSummary? { get }
+  var reviewSummary: GooglePlacesSwift.ReviewSummary? { get }
+  var consumerAlert: GooglePlacesSwift.ConsumerAlert? { get }
+  var hasOutdoorSeating: Swift.Bool? { get }
+  var hasLiveMusic: Swift.Bool? { get }
+  var hasMenuForChildren: Swift.Bool? { get }
+  var servesCocktails: Swift.Bool? { get }
+  var servesDessert: Swift.Bool? { get }
+  var servesCoffee: Swift.Bool? { get }
+  var isGoodForChildren: Swift.Bool? { get }
+  var allowsDogs: Swift.Bool? { get }
+  var hasRestroom: Swift.Bool? { get }
+  var isGoodForGroups: Swift.Bool? { get }
+  var isGoodForWatchingSports: Swift.Bool? { get }
+  var paymentOptions: GooglePlacesSwift.PaymentOptions? { get }
+  var googleMapsLinks: GooglePlacesSwift.GoogleMapsLinks? { get }
+  var containingPlaces: [GooglePlacesSwift.ContainingPlace]? { get }
+  var addressDescriptor: GooglePlacesSwift.AddressDescriptor? { get }
+  var priceRange: GooglePlacesSwift.PriceRange? { get }
+  var postalAddress: GooglePlacesSwift.PostalAddress? { get }
+}
+public struct Place : GooglePlacesSwift.PlaceProtocol, Swift.Sendable {
+  public var displayName: Swift.String? {
+    get
+  }
+  public var placeID: Swift.String? {
+    get
+  }
+  public var location: _LocationEssentials.CLLocationCoordinate2D {
+    get
+  }
+  public var internationalPhoneNumber: Swift.String? {
+    get
+  }
+  public var formattedAddress: Swift.String? {
+    get
+  }
+  public var rating: Swift.Float? {
+    get
+  }
+  @available(*, deprecated, message: "This property is deprecated, please use the Place Details component (https://developers.google.com/maps/documentation/places/ios-sdk/place-details-ui-kit) instead.")
+  public var reviews: [GooglePlacesSwift.Review] {
+    get
+  }
+  public var priceLevel: GooglePlacesSwift.PriceLevel {
+    get
+  }
+  public var types: Swift.Set<GooglePlacesSwift.PlaceType> {
+    get
+  }
+  public var websiteURL: Foundation.URL? {
+    get
+  }
+  public var attributions: Foundation.AttributedString? {
+    get
+  }
+  public var legacyAttributions: Foundation.NSAttributedString? {
+    get
+  }
+  public var viewportInfo: GooglePlacesSwift.RectangularCoordinateRegion? {
+    get
+  }
+  public var addressComponents: [GooglePlacesSwift.AddressComponent]? {
+    get
+  }
+  public var plusCode: GooglePlacesSwift.PlusCode? {
+    get
+  }
+  public var regularOpeningHours: GooglePlacesSwift.OpeningHours? {
+    get
+  }
+  public var currentOpeningHours: GooglePlacesSwift.OpeningHours? {
+    get
+  }
+  public var currentSecondaryOpeningHours: [GooglePlacesSwift.OpeningHours]? {
+    get
+  }
+  public var numberOfUserRatings: Swift.Int {
+    get
+  }
+  @available(*, deprecated, message: "This property is deprecated, please use the Place Details component (https://developers.google.com/maps/documentation/places/ios-sdk/place-details-ui-kit) instead.")
+  public var photos: [GooglePlacesSwift.Photo]? {
+    get
+  }
+  public var timeZone: Foundation.TimeZone? {
+    get
+  }
+  public var businessStatus: GooglePlacesSwift.BusinessStatus {
+    get
+  }
+  public var editorialSummary: Swift.String? {
+    get
+  }
+  public var iconBackgroundColor: UIKit.UIColor? {
+    get
+  }
+  public var iconMaskURL: Foundation.URL? {
+    get
+  }
+  public var supportsTakeout: Swift.Bool? {
+    get
+  }
+  public var supportsDelivery: Swift.Bool? {
+    get
+  }
+  public var supportsDineIn: Swift.Bool? {
+    get
+  }
+  public var supportsCurbsidePickup: Swift.Bool? {
+    get
+  }
+  public var isReservable: Swift.Bool? {
+    get
+  }
+  public var servesBreakfast: Swift.Bool? {
+    get
+  }
+  public var servesLunch: Swift.Bool? {
+    get
+  }
+  public var servesDinner: Swift.Bool? {
+    get
+  }
+  public var servesBeer: Swift.Bool? {
+    get
+  }
+  public var servesWine: Swift.Bool? {
+    get
+  }
+  public var servesBrunch: Swift.Bool? {
+    get
+  }
+  public var servesVegetarianFood: Swift.Bool? {
+    get
+  }
+  public var accessibilityOptions: GooglePlacesSwift.AccessibilityOptions? {
+    get
+  }
+  public var isPureServiceAreaBusiness: Swift.Bool? {
+    get
+  }
+  public var evChargeOptions: GooglePlacesSwift.EVChargeOptions? {
+    get
+  }
+  public var parkingOptions: GooglePlacesSwift.ParkingOptions? {
+    get
+  }
+  public var consumerAlert: GooglePlacesSwift.ConsumerAlert? {
+    get
+  }
+  public var evChargeAmenitySummary: GooglePlacesSwift.EVChargeAmenitySummary? {
+    get
+  }
+  public var generativeSummary: GooglePlacesSwift.GenerativeSummary? {
+    get
+  }
+  public var neighborhoodSummary: GooglePlacesSwift.NeighborhoodSummary? {
+    get
+  }
+  public var reviewSummary: GooglePlacesSwift.ReviewSummary? {
+    get
+  }
+  public var hasOutdoorSeating: Swift.Bool? {
+    get
+  }
+  public var hasLiveMusic: Swift.Bool? {
+    get
+  }
+  public var hasMenuForChildren: Swift.Bool? {
+    get
+  }
+  public var servesCocktails: Swift.Bool? {
+    get
+  }
+  public var servesDessert: Swift.Bool? {
+    get
+  }
+  public var servesCoffee: Swift.Bool? {
+    get
+  }
+  public var isGoodForChildren: Swift.Bool? {
+    get
+  }
+  public var allowsDogs: Swift.Bool? {
+    get
+  }
+  public var hasRestroom: Swift.Bool? {
+    get
+  }
+  public var isGoodForGroups: Swift.Bool? {
+    get
+  }
+  public var isGoodForWatchingSports: Swift.Bool? {
+    get
+  }
+  public var fuelOptions: GooglePlacesSwift.FuelOptions? {
+    get
+  }
+  public var paymentOptions: GooglePlacesSwift.PaymentOptions? {
+    get
+  }
+  public var googleMapsLinks: GooglePlacesSwift.GoogleMapsLinks? {
+    get
+  }
+  public var containingPlaces: [GooglePlacesSwift.ContainingPlace]? {
+    get
+  }
+  public var addressDescriptor: GooglePlacesSwift.AddressDescriptor? {
+    get
+  }
+  public var priceRange: GooglePlacesSwift.PriceRange? {
+    get
+  }
+  public var postalAddress: GooglePlacesSwift.PostalAddress? {
+    get
+  }
+}
+extension GooglePlacesSwift.Place : Swift.CustomStringConvertible, Swift.Equatable, Swift.Hashable {
+  public static func == (lhs: GooglePlacesSwift.Place, rhs: GooglePlacesSwift.Place) -> Swift.Bool
+  public var description: Swift.String {
+    get
+  }
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hash: Swift.Int {
+    get
+  }
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public enum PlaceProperty {
+  case accessibilityOptions
+  case addressComponents
+  case all
+  case allowsDogs
+  case businessStatus
+  case consumerAlert
+  case coordinate
+  case currentOpeningHours
+  case currentSecondaryOpeningHours
+  case displayName
+  case editorialSummary
+  case evChargeAmenitySummary
+  case evChargeOptions
+  case formattedAddress
+  case fuelOptions
+  case generativeSummary
+  case goodForChildren
+  case goodForGroups
+  case goodForWatchingSports
+  case googleMapsLinks
+  case iconBackgroundColor
+  case iconMaskURL
+  case internationalPhoneNumber
+  case isReservable
+  case liveMusic
+  case menuForChildren
+  case neighborhoodSummary
+  case numberOfUserRatings
+  case outdoorSeating
+  case parkingOptions
+  case paymentOptions
+  case photos
+  case placeID
+  case plusCode
+  case priceLevel
+  case pureServiceAreaBusiness
+  case rating
+  case regularOpeningHours
+  case restroom
+  case reviewSummary
+  case reviews
+  case servesBeer
+  case servesBreakfast
+  case servesBrunch
+  case servesCocktails
+  case servesCoffee
+  case servesDessert
+  case servesDinner
+  case servesLunch
+  case servesVegetarianFood
+  case servesWine
+  case supportsCurbsidePickup
+  case supportsDelivery
+  case supportsDineIn
+  case supportsTakeout
+  case timeZone
+  case types
+  case viewportInfo
+  case websiteURL
+  case addressDescriptor
+  case containingPlaces
+  case priceRange
+  case postalAddress
+  public static func == (a: GooglePlacesSwift.PlaceProperty, b: GooglePlacesSwift.PlaceProperty) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public struct PlaceType : Swift.Equatable, Swift.Hashable, Swift.RawRepresentable, Swift.Sendable {
+  public let rawValue: Swift.String
+  public init(rawValue: Swift.String)
+  public typealias RawValue = Swift.String
+}
+extension GooglePlacesSwift.PlaceType {
+  public static let accounting: GooglePlacesSwift.PlaceType
+  public static let airport: GooglePlacesSwift.PlaceType
+  public static let amusementPark: GooglePlacesSwift.PlaceType
+  public static let aquarium: GooglePlacesSwift.PlaceType
+  public static let artGallery: GooglePlacesSwift.PlaceType
+  public static let atm: GooglePlacesSwift.PlaceType
+  public static let bakery: GooglePlacesSwift.PlaceType
+  public static let bank: GooglePlacesSwift.PlaceType
+  public static let bar: GooglePlacesSwift.PlaceType
+  public static let beautySalon: GooglePlacesSwift.PlaceType
+  public static let bicycleStore: GooglePlacesSwift.PlaceType
+  public static let bookStore: GooglePlacesSwift.PlaceType
+  public static let bowlingAlley: GooglePlacesSwift.PlaceType
+  public static let busStation: GooglePlacesSwift.PlaceType
+  public static let cafe: GooglePlacesSwift.PlaceType
+  public static let campground: GooglePlacesSwift.PlaceType
+  public static let carDealer: GooglePlacesSwift.PlaceType
+  public static let carRental: GooglePlacesSwift.PlaceType
+  public static let carRepair: GooglePlacesSwift.PlaceType
+  public static let carWash: GooglePlacesSwift.PlaceType
+  public static let casino: GooglePlacesSwift.PlaceType
+  public static let cemetery: GooglePlacesSwift.PlaceType
+  public static let church: GooglePlacesSwift.PlaceType
+  public static let cityHall: GooglePlacesSwift.PlaceType
+  public static let clothingStore: GooglePlacesSwift.PlaceType
+  public static let convenienceStore: GooglePlacesSwift.PlaceType
+  public static let courthouse: GooglePlacesSwift.PlaceType
+  public static let dentist: GooglePlacesSwift.PlaceType
+  public static let departmentStore: GooglePlacesSwift.PlaceType
+  public static let doctor: GooglePlacesSwift.PlaceType
+  public static let drugstore: GooglePlacesSwift.PlaceType
+  public static let electrician: GooglePlacesSwift.PlaceType
+  public static let electronicsStore: GooglePlacesSwift.PlaceType
+  public static let embassy: GooglePlacesSwift.PlaceType
+  public static let fireStation: GooglePlacesSwift.PlaceType
+  public static let florist: GooglePlacesSwift.PlaceType
+  public static let funeralHome: GooglePlacesSwift.PlaceType
+  public static let furnitureStore: GooglePlacesSwift.PlaceType
+  public static let gasStation: GooglePlacesSwift.PlaceType
+  public static let groceryOrSupermarket: GooglePlacesSwift.PlaceType
+  public static let gym: GooglePlacesSwift.PlaceType
+  public static let hairCare: GooglePlacesSwift.PlaceType
+  public static let hardwareStore: GooglePlacesSwift.PlaceType
+  public static let hinduTemple: GooglePlacesSwift.PlaceType
+  public static let homeGoodsStore: GooglePlacesSwift.PlaceType
+  public static let hospital: GooglePlacesSwift.PlaceType
+  public static let insuranceAgency: GooglePlacesSwift.PlaceType
+  public static let jewelryStore: GooglePlacesSwift.PlaceType
+  public static let laundry: GooglePlacesSwift.PlaceType
+  public static let lawyer: GooglePlacesSwift.PlaceType
+  public static let library: GooglePlacesSwift.PlaceType
+  public static let lightRailStation: GooglePlacesSwift.PlaceType
+  public static let liquorStore: GooglePlacesSwift.PlaceType
+  public static let localGovernmentOffice: GooglePlacesSwift.PlaceType
+  public static let locksmith: GooglePlacesSwift.PlaceType
+  public static let lodging: GooglePlacesSwift.PlaceType
+  public static let mealDelivery: GooglePlacesSwift.PlaceType
+  public static let mealTakeaway: GooglePlacesSwift.PlaceType
+  public static let mosque: GooglePlacesSwift.PlaceType
+  public static let movieRental: GooglePlacesSwift.PlaceType
+  public static let movieTheater: GooglePlacesSwift.PlaceType
+  public static let movingCompany: GooglePlacesSwift.PlaceType
+  public static let museum: GooglePlacesSwift.PlaceType
+  public static let neighborhood: GooglePlacesSwift.PlaceType
+  public static let nightClub: GooglePlacesSwift.PlaceType
+  public static let painter: GooglePlacesSwift.PlaceType
+  public static let park: GooglePlacesSwift.PlaceType
+  public static let parking: GooglePlacesSwift.PlaceType
+  public static let petStore: GooglePlacesSwift.PlaceType
+  public static let pharmacy: GooglePlacesSwift.PlaceType
+  public static let physiotherapist: GooglePlacesSwift.PlaceType
+  public static let plumber: GooglePlacesSwift.PlaceType
+  public static let police: GooglePlacesSwift.PlaceType
+  public static let primarySchool: GooglePlacesSwift.PlaceType
+  public static let realEstateAgency: GooglePlacesSwift.PlaceType
+  public static let restaurant: GooglePlacesSwift.PlaceType
+  public static let roofingContractor: GooglePlacesSwift.PlaceType
+  public static let rvPark: GooglePlacesSwift.PlaceType
+  public static let school: GooglePlacesSwift.PlaceType
+  public static let secondarySchool: GooglePlacesSwift.PlaceType
+  public static let shoeStore: GooglePlacesSwift.PlaceType
+  public static let shoppingMall: GooglePlacesSwift.PlaceType
+  public static let spa: GooglePlacesSwift.PlaceType
+  public static let stadium: GooglePlacesSwift.PlaceType
+  public static let storage: GooglePlacesSwift.PlaceType
+  public static let store: GooglePlacesSwift.PlaceType
+  public static let subwayStation: GooglePlacesSwift.PlaceType
+  public static let supermarket: GooglePlacesSwift.PlaceType
+  public static let synagogue: GooglePlacesSwift.PlaceType
+  public static let taxiStand: GooglePlacesSwift.PlaceType
+  public static let trainStation: GooglePlacesSwift.PlaceType
+  public static let transitStation: GooglePlacesSwift.PlaceType
+  public static let travelAgency: GooglePlacesSwift.PlaceType
+  public static let touristAttraction: GooglePlacesSwift.PlaceType
+  public static let university: GooglePlacesSwift.PlaceType
+  public static let veterinaryCare: GooglePlacesSwift.PlaceType
+  public static let zoo: GooglePlacesSwift.PlaceType
+}
+extension GooglePlacesSwift.PlaceType {
+  public static let administrativeAreaLevel1: GooglePlacesSwift.PlaceType
+  public static let administrativeAreaLevel2: GooglePlacesSwift.PlaceType
+  public static let administrativeAreaLevel3: GooglePlacesSwift.PlaceType
+  public static let administrativeAreaLevel4: GooglePlacesSwift.PlaceType
+  public static let administrativeAreaLevel5: GooglePlacesSwift.PlaceType
+  public static let colloquialArea: GooglePlacesSwift.PlaceType
+  public static let country: GooglePlacesSwift.PlaceType
+  public static let establishment: GooglePlacesSwift.PlaceType
+  public static let finance: GooglePlacesSwift.PlaceType
+  public static let floor: GooglePlacesSwift.PlaceType
+  public static let food: GooglePlacesSwift.PlaceType
+  public static let generalContractor: GooglePlacesSwift.PlaceType
+  public static let geocode: GooglePlacesSwift.PlaceType
+  public static let health: GooglePlacesSwift.PlaceType
+  public static let intersection: GooglePlacesSwift.PlaceType
+  public static let locality: GooglePlacesSwift.PlaceType
+  public static let naturalFeature: GooglePlacesSwift.PlaceType
+  public static let placeOfWorship: GooglePlacesSwift.PlaceType
+  public static let pointOfInterest: GooglePlacesSwift.PlaceType
+  public static let political: GooglePlacesSwift.PlaceType
+  public static let postBox: GooglePlacesSwift.PlaceType
+  public static let postOffice: GooglePlacesSwift.PlaceType
+  public static let postalCode: GooglePlacesSwift.PlaceType
+  public static let postalCodePrefix: GooglePlacesSwift.PlaceType
+  public static let postalCodeSuffix: GooglePlacesSwift.PlaceType
+  public static let postalTown: GooglePlacesSwift.PlaceType
+  public static let premise: GooglePlacesSwift.PlaceType
+  public static let room: GooglePlacesSwift.PlaceType
+  public static let route: GooglePlacesSwift.PlaceType
+  public static let streetAddress: GooglePlacesSwift.PlaceType
+  public static let streetNumber: GooglePlacesSwift.PlaceType
+  public static let sublocality: GooglePlacesSwift.PlaceType
+  public static let sublocalityLevel1: GooglePlacesSwift.PlaceType
+  public static let sublocalityLevel2: GooglePlacesSwift.PlaceType
+  public static let sublocalityLevel3: GooglePlacesSwift.PlaceType
+  public static let sublocalityLevel4: GooglePlacesSwift.PlaceType
+  public static let sublocalityLevel5: GooglePlacesSwift.PlaceType
+  public static let subpremise: GooglePlacesSwift.PlaceType
+  public static let townSquare: GooglePlacesSwift.PlaceType
+}
+extension GooglePlacesSwift.PlaceType {
+  public static let address: GooglePlacesSwift.PlaceType
+  public static let regions: GooglePlacesSwift.PlaceType
+  public static let cities: GooglePlacesSwift.PlaceType
+}
+public protocol PlacesClientProtocol : AnyObject, Swift.Sendable {
+  @_Concurrency.MainActor static var shared: Self { get }
+  @_Concurrency.MainActor static func provideAPIKey(_ key: Swift.String) -> Swift.Bool
+  @_Concurrency.MainActor static func setAppCheckTokenProvider(_ tokenProvider: any GooglePlacesSwift.AppCheckTokenProvider)
+  static var openSourceLicenseInfo: Swift.String { get }
+  static var sdkVersion: Swift.String { get }
+  static var sdkLongVersion: Swift.String { get }
+  @_Concurrency.MainActor static func addInternalUsageAttributionID(_ internalUsageAttributionID: Swift.String)
+  func isPlaceOpen(with request: GooglePlacesSwift.IsPlaceOpenRequest) async -> Swift.Result<GooglePlacesSwift.IsPlaceOpenResponse, GooglePlacesSwift.PlacesError>
+  @available(*, deprecated, message: "Use `responseForSearchByText` instead.")
+  func searchByText(with request: GooglePlacesSwift.SearchByTextRequest) async -> Swift.Result<[GooglePlacesSwift.Place], GooglePlacesSwift.PlacesError>
+  @available(*, deprecated, message: "Use `responseForSearchNearby` instead.")
+  func searchNearby(with request: GooglePlacesSwift.SearchNearbyRequest) async -> Swift.Result<[GooglePlacesSwift.Place], GooglePlacesSwift.PlacesError>
+  func responseForSearchByText(with request: GooglePlacesSwift.SearchByTextRequest) async -> Swift.Result<GooglePlacesSwift.SearchByTextResponse, GooglePlacesSwift.PlacesError>
+  func responseForSearchNearby(with request: GooglePlacesSwift.SearchNearbyRequest) async -> Swift.Result<GooglePlacesSwift.SearchNearbyResponse, GooglePlacesSwift.PlacesError>
+  func fetchPlace(with request: GooglePlacesSwift.FetchPlaceRequest) async -> Swift.Result<GooglePlacesSwift.Place, GooglePlacesSwift.PlacesError>
+  @available(*, deprecated, message: "This API is deprecated, please use the Place Details component (https://developers.google.com/maps/documentation/places/ios-sdk/place-details-ui-kit) instead.")
+  func fetchPhoto(with request: GooglePlacesSwift.FetchPhotoRequest) async -> Swift.Result<UIKit.UIImage, GooglePlacesSwift.PlacesError>
+  func fetchAutocompleteSuggestions(with request: GooglePlacesSwift.AutocompleteRequest) async -> Swift.Result<[GooglePlacesSwift.AutocompleteSuggestion], GooglePlacesSwift.PlacesError>
+}
+@_hasMissingDesignatedInitializers final public class PlacesClient : GooglePlacesSwift.PlacesClientProtocol, Swift.Sendable {
+  @_Concurrency.MainActor unowned public static var shared: GooglePlacesSwift.PlacesClient {
+    get
+  }
+  @_Concurrency.MainActor public static func provideAPIKey(_ key: Swift.String) -> Swift.Bool
+  @_Concurrency.MainActor public static func setAppCheckTokenProvider(_ tokenProvider: any GooglePlacesSwift.AppCheckTokenProvider)
+  public static var openSourceLicenseInfo: Swift.String {
+    get
+  }
+  public static var sdkVersion: Swift.String {
+    get
+  }
+  public static var sdkLongVersion: Swift.String {
+    get
+  }
+  @_Concurrency.MainActor public static func addInternalUsageAttributionID(_ internalUsageAttributionID: Swift.String)
+  final public func isPlaceOpen(with request: GooglePlacesSwift.IsPlaceOpenRequest) async -> Swift.Result<GooglePlacesSwift.IsPlaceOpenResponse, GooglePlacesSwift.PlacesError>
+  @available(*, deprecated, message: "Use `responseForSearchByText` instead.")
+  final public func searchByText(with request: GooglePlacesSwift.SearchByTextRequest) async -> Swift.Result<[GooglePlacesSwift.Place], GooglePlacesSwift.PlacesError>
+  @available(*, deprecated, message: "Use `responseForSearchNearby` instead.")
+  final public func searchNearby(with request: GooglePlacesSwift.SearchNearbyRequest) async -> Swift.Result<[GooglePlacesSwift.Place], GooglePlacesSwift.PlacesError>
+  final public func responseForSearchByText(with request: GooglePlacesSwift.SearchByTextRequest) async -> Swift.Result<GooglePlacesSwift.SearchByTextResponse, GooglePlacesSwift.PlacesError>
+  final public func responseForSearchNearby(with request: GooglePlacesSwift.SearchNearbyRequest) async -> Swift.Result<GooglePlacesSwift.SearchNearbyResponse, GooglePlacesSwift.PlacesError>
+  final public func fetchPlace(with request: GooglePlacesSwift.FetchPlaceRequest) async -> Swift.Result<GooglePlacesSwift.Place, GooglePlacesSwift.PlacesError>
+  @available(*, deprecated, message: "This API is deprecated, please use the Place Details component (https://developers.google.com/maps/documentation/places/ios-sdk/place-details-ui-kit) instead.")
+  final public func fetchPhoto(with request: GooglePlacesSwift.FetchPhotoRequest) async -> Swift.Result<UIKit.UIImage, GooglePlacesSwift.PlacesError>
+  final public func fetchAutocompleteSuggestions(with request: GooglePlacesSwift.AutocompleteRequest) async -> Swift.Result<[GooglePlacesSwift.AutocompleteSuggestion], GooglePlacesSwift.PlacesError>
+  @objc deinit
+}
+public enum PlacesError : Swift.Error, Swift.Equatable, Swift.Hashable, Swift.Sendable {
+  case network(_: Swift.String)
+  case server(_: Swift.String)
+  case `internal`(_: Swift.String)
+  case keyInvalid(_: Swift.String)
+  case keyExpired(_: Swift.String)
+  case usageLimitExceeded(_: Swift.String)
+  case rateLimitExceeded(_: Swift.String)
+  case deviceRateLimitExceeded(_: Swift.String)
+  case accessNotConfigured(_: Swift.String)
+  case incorrectBundleIdentifier(_: Swift.String)
+  case location(_: Swift.String)
+  case invalidRequest(_: Swift.String)
+  public var localizedDescription: Swift.String {
+    get
+  }
+  public static func == (a: GooglePlacesSwift.PlacesError, b: GooglePlacesSwift.PlacesError) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public struct PlusCode : Swift.Sendable {
+  public var globalCode: Swift.String {
+    get
+  }
+  public var compoundCode: Swift.String? {
+    get
+  }
+  public init(globalCode: Swift.String, compoundCode: Swift.String? = nil)
+}
+extension GooglePlacesSwift.PlusCode : Swift.CustomStringConvertible, Swift.Equatable, Swift.Hashable {
+  public static func == (lhs: GooglePlacesSwift.PlusCode, rhs: GooglePlacesSwift.PlusCode) -> Swift.Bool
+  public var description: Swift.String {
+    get
+  }
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public protocol Polyline : Swift.Hashable {
+}
+public struct PostalAddress : Swift.Sendable {
+  public var regionCode: Swift.String? {
+    get
+  }
+  public var languageCode: Swift.String? {
+    get
+  }
+  public var postalCode: Swift.String? {
+    get
+  }
+  public var sortingCode: Swift.String? {
+    get
+  }
+  public var administrativeArea: Swift.String? {
+    get
+  }
+  public var locality: Swift.String? {
+    get
+  }
+  public var sublocality: Swift.String? {
+    get
+  }
+  public var addressLines: [Swift.String] {
+    get
+  }
+  public var recipients: [Swift.String] {
+    get
+  }
+  public var organization: Swift.String? {
+    get
+  }
+}
+extension GooglePlacesSwift.PostalAddress : Swift.Hashable, Swift.Equatable, Swift.CustomStringConvertible {
+  public static func == (lhs: GooglePlacesSwift.PostalAddress, rhs: GooglePlacesSwift.PostalAddress) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var description: Swift.String {
+    get
+  }
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public struct PriceRange : Swift.Sendable {
+  public var startPrice: GooglePlacesSwift.Money? {
+    get
+  }
+  public var endPrice: GooglePlacesSwift.Money? {
+    get
+  }
+}
+extension GooglePlacesSwift.PriceRange : Swift.Hashable, Swift.Equatable, Swift.CustomStringConvertible {
+  public static func == (lhs: GooglePlacesSwift.PriceRange, rhs: GooglePlacesSwift.PriceRange) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var description: Swift.String {
+    get
+  }
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+@available(*, deprecated, message: "This struct is deprecated, please use the Place Details component (https://developers.google.com/maps/documentation/places/ios-sdk/place-details-ui-kit) instead.")
+public struct Review : Swift.Sendable {
+  public init(publishDate: Foundation.Date, rating: Swift.Float, relativePublishDateDescription: Swift.String? = nil, text: Swift.String? = nil, textLanguageCode: Swift.String? = nil, originalText: Swift.String? = nil, originalTextLanguageCode: Swift.String? = nil, authorAttribution: GooglePlacesSwift.AuthorAttribution? = nil, visitYear: Swift.UInt = 0, visitMonth: Swift.UInt = 0)
+  public var publishDate: Foundation.Date {
+    get
+  }
+  public var relativePublishDateDescription: Swift.String? {
+    get
+  }
+  public var text: Swift.String? {
+    get
+  }
+  public var textLanguageCode: Swift.String? {
+    get
+  }
+  public var originalText: Swift.String? {
+    get
+  }
+  public var originalTextLanguageCode: Swift.String? {
+    get
+  }
+  public var rating: Swift.Float {
+    get
+  }
+  public var visitYear: Swift.UInt {
+    get
+  }
+  public var visitMonth: Swift.UInt {
+    get
+  }
+  public var authorAttribution: GooglePlacesSwift.AuthorAttribution? {
+    get
+  }
+}
+extension GooglePlacesSwift.Review : Swift.Hashable, Swift.Equatable, Swift.CustomStringConvertible {
+  public static func == (lhs: GooglePlacesSwift.Review, rhs: GooglePlacesSwift.Review) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var description: Swift.String {
+    get
+  }
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public struct ReviewSummary : GooglePlacesSwift.AISummary {
+  public let text: Swift.String?
+  public let textLanguageCode: Swift.String?
+  public let flagContentURI: Foundation.URL?
+  public let disclosureText: Swift.String?
+  public let disclosureTextLanguageCode: Swift.String?
+  public init(text: Swift.String?, textLanguageCode: Swift.String?, flagContentURI: Foundation.URL?, disclosureText: Swift.String?, disclosureTextLanguageCode: Swift.String?)
+}
+extension GooglePlacesSwift.ReviewSummary : Swift.Hashable, Swift.Equatable, Swift.CustomStringConvertible {
+  public static func == (lhs: GooglePlacesSwift.ReviewSummary, rhs: GooglePlacesSwift.ReviewSummary) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var description: Swift.String {
+    get
+  }
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public struct RouteModifiers : Swift.Sendable {
+  public var avoidTolls: Swift.Bool {
+    get
+  }
+  public var avoidHighways: Swift.Bool {
+    get
+  }
+  public var avoidFerries: Swift.Bool {
+    get
+  }
+  public var avoidIndoor: Swift.Bool {
+    get
+  }
+  public init(avoidTolls: Swift.Bool = false, avoidHighways: Swift.Bool = false, avoidFerries: Swift.Bool = false, avoidIndoor: Swift.Bool = false)
+}
+extension GooglePlacesSwift.RouteModifiers : Swift.CustomStringConvertible, Swift.Equatable, Swift.Hashable {
+  public static func == (lhs: GooglePlacesSwift.RouteModifiers, rhs: GooglePlacesSwift.RouteModifiers) -> Swift.Bool
+  public var description: Swift.String {
+    get
+  }
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public enum TravelMode : Swift.Int, Swift.CaseIterable, Swift.Sendable {
+  case unspecified
+  case drive
+  case bicycle
+  case walk
+  case twoWheeler
+  public init?(rawValue: Swift.Int)
+  public typealias AllCases = [GooglePlacesSwift.TravelMode]
+  public typealias RawValue = Swift.Int
+  nonisolated public static var allCases: [GooglePlacesSwift.TravelMode] {
+    get
+  }
+  public var rawValue: Swift.Int {
+    get
+  }
+}
+public enum RoutingPreference : Swift.Int, Swift.CaseIterable, Swift.Sendable {
+  case unspecified
+  case trafficUnaware
+  case trafficAware
+  case trafficAwareOptimal
+  public init?(rawValue: Swift.Int)
+  public typealias AllCases = [GooglePlacesSwift.RoutingPreference]
+  public typealias RawValue = Swift.Int
+  nonisolated public static var allCases: [GooglePlacesSwift.RoutingPreference] {
+    get
+  }
+  public var rawValue: Swift.Int {
+    get
+  }
+}
+public struct RoutingParameters : Swift.Sendable {
+  public var origin: _LocationEssentials.CLLocationCoordinate2D? {
+    get
+  }
+  public var travelMode: GooglePlacesSwift.TravelMode {
+    get
+  }
+  public var routeModifiers: GooglePlacesSwift.RouteModifiers? {
+    get
+  }
+  public var routingPreference: GooglePlacesSwift.RoutingPreference {
+    get
+  }
+  public init(origin: _LocationEssentials.CLLocationCoordinate2D? = nil, travelMode: GooglePlacesSwift.TravelMode = .unspecified, routeModifiers: GooglePlacesSwift.RouteModifiers? = nil, routingPreference: GooglePlacesSwift.RoutingPreference = .unspecified)
+}
+extension GooglePlacesSwift.RoutingParameters : Swift.CustomStringConvertible, Swift.Equatable, Swift.Hashable {
+  public static func == (lhs: GooglePlacesSwift.RoutingParameters, rhs: GooglePlacesSwift.RoutingParameters) -> Swift.Bool
+  public var description: Swift.String {
+    get
+  }
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public struct RoutingSummary : Swift.Sendable {
+  public let legs: [GooglePlacesSwift.Leg]
+  public let directionsURL: Foundation.URL?
+  public init(legs: [GooglePlacesSwift.Leg], directionsURL: Foundation.URL?)
+}
+extension GooglePlacesSwift.RoutingSummary : Swift.CustomStringConvertible, Swift.Equatable, Swift.Hashable {
+  public static func == (lhs: GooglePlacesSwift.RoutingSummary, rhs: GooglePlacesSwift.RoutingSummary) -> Swift.Bool
+  public var description: Swift.String {
+    get
+  }
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public struct SearchAlongRouteParameters : Swift.Sendable {
+  public var polyline: any GooglePlacesSwift.Polyline {
+    get
+  }
+  public init(polyline: any GooglePlacesSwift.Polyline)
+}
+extension GooglePlacesSwift.SearchAlongRouteParameters : Swift.CustomStringConvertible, Swift.Equatable, Swift.Hashable {
+  public static func == (lhs: GooglePlacesSwift.SearchAlongRouteParameters, rhs: GooglePlacesSwift.SearchAlongRouteParameters) -> Swift.Bool
+  public var description: Swift.String {
+    get
+  }
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public struct SearchByTextRequest : Swift.Sendable, Swift.Equatable {
+  public enum RankPreference : Swift.Equatable, Swift.Hashable, Swift.CaseIterable, Swift.Identifiable, Swift.Sendable {
+    case distance
+    case relevance
+    public var id: GooglePlacesSwift.SearchByTextRequest.RankPreference {
+      get
+    }
+    public static func == (a: GooglePlacesSwift.SearchByTextRequest.RankPreference, b: GooglePlacesSwift.SearchByTextRequest.RankPreference) -> Swift.Bool
+    public typealias AllCases = [GooglePlacesSwift.SearchByTextRequest.RankPreference]
+    public typealias ID = GooglePlacesSwift.SearchByTextRequest.RankPreference
+    nonisolated public static var allCases: [GooglePlacesSwift.SearchByTextRequest.RankPreference] {
+      get
+    }
+    public func hash(into hasher: inout Swift.Hasher)
+    public var hashValue: Swift.Int {
+      get
+    }
+  }
+  public init(textQuery: Swift.String, placeProperties: [GooglePlacesSwift.PlaceProperty], locationBias: any GooglePlacesSwift.CoordinateRegionBias, includedType: GooglePlacesSwift.PlaceType? = nil, maxResultCount: Swift.Int = 20, minRating: Swift.Float = 0.0, isOpenNow: Swift.Bool = true, priceLevels: Swift.Set<GooglePlacesSwift.PriceLevel>? = nil, rankPreference: GooglePlacesSwift.SearchByTextRequest.RankPreference = .distance, regionCode: Swift.String? = nil, isStrictTypeFiltering: Swift.Bool = false, shouldIncludePureServiceAreaBusinesses: Swift.Bool = false, evSearchOptions: GooglePlacesSwift.EVSearchOptions? = nil, routingParameters: GooglePlacesSwift.RoutingParameters? = nil, searchAlongRouteParameters: GooglePlacesSwift.SearchAlongRouteParameters? = nil, shouldIncludeRoutingSummaries: Swift.Bool = false, shouldIncludeSearchURL: Swift.Bool = false)
+  public init(textQuery: Swift.String, placeProperties: [GooglePlacesSwift.PlaceProperty], locationRestriction: any GooglePlacesSwift.CoordinateRegionRestriction, includedType: GooglePlacesSwift.PlaceType? = nil, maxResultCount: Swift.Int = 20, minRating: Swift.Float = 0.0, isOpenNow: Swift.Bool = true, priceLevels: Swift.Set<GooglePlacesSwift.PriceLevel>? = nil, rankPreference: GooglePlacesSwift.SearchByTextRequest.RankPreference = .distance, regionCode: Swift.String? = nil, isStrictTypeFiltering: Swift.Bool = false, shouldIncludePureServiceAreaBusinesses: Swift.Bool = false, evSearchOptions: GooglePlacesSwift.EVSearchOptions? = nil, routingParameters: GooglePlacesSwift.RoutingParameters? = nil, searchAlongRouteParameters: GooglePlacesSwift.SearchAlongRouteParameters? = nil, shouldIncludeRoutingSummaries: Swift.Bool = false, shouldIncludeSearchURL: Swift.Bool = false)
+  public var includedType: GooglePlacesSwift.PlaceType? {
+    get
+  }
+  public var maxResultCount: Swift.Int {
+    get
+  }
+  public var minRating: Swift.Float {
+    get
+  }
+  public var isOpenNow: Swift.Bool {
+    get
+  }
+  public var placeProperties: [GooglePlacesSwift.PlaceProperty] {
+    get
+  }
+  public var priceLevels: Swift.Set<GooglePlacesSwift.PriceLevel>? {
+    get
+  }
+  public var rankPreference: GooglePlacesSwift.SearchByTextRequest.RankPreference {
+    get
+  }
+  public var regionCode: Swift.String? {
+    get
+  }
+  public var isStrictTypeFiltering: Swift.Bool {
+    get
+  }
+  public var textQuery: Swift.String {
+    get
+  }
+  public var locationBias: (any GooglePlacesSwift.CoordinateRegionBias)? {
+    get
+  }
+  public var locationRestriction: (any GooglePlacesSwift.CoordinateRegionRestriction)? {
+    get
+  }
+  public var shouldIncludePureServiceAreaBusinesses: Swift.Bool {
+    get
+  }
+  public var evSearchOptions: GooglePlacesSwift.EVSearchOptions? {
+    get
+  }
+  public var routingParameters: GooglePlacesSwift.RoutingParameters? {
+    get
+  }
+  public var searchAlongRouteParameters: GooglePlacesSwift.SearchAlongRouteParameters? {
+    get
+  }
+  public var shouldIncludeRoutingSummaries: Swift.Bool {
+    get
+  }
+  public static func == (a: GooglePlacesSwift.SearchByTextRequest, b: GooglePlacesSwift.SearchByTextRequest) -> Swift.Bool
+}
+public struct SearchByTextResponse : GooglePlacesSwift.SearchResponse, Swift.Sendable {
+  public var places: [GooglePlacesSwift.Place]? {
+    get
+  }
+  public var pagination: GooglePlacesSwift.Pagination<GooglePlacesSwift.SearchByTextResponse>? {
+    get
+  }
+  public var routingSummaries: [GooglePlacesSwift.RoutingSummary] {
+    get
+  }
+  public var searchURL: Foundation.URL? {
+    get
+  }
+}
+public struct SearchNearbyRequest : Swift.Sendable, Swift.Equatable {
+  public enum RankPreference : Swift.Equatable, Swift.Hashable, Swift.CaseIterable, Swift.Identifiable, Swift.Sendable {
+    case popularity
+    case distance
+    public var id: GooglePlacesSwift.SearchNearbyRequest.RankPreference {
+      get
+    }
+    public static func == (a: GooglePlacesSwift.SearchNearbyRequest.RankPreference, b: GooglePlacesSwift.SearchNearbyRequest.RankPreference) -> Swift.Bool
+    public typealias AllCases = [GooglePlacesSwift.SearchNearbyRequest.RankPreference]
+    public typealias ID = GooglePlacesSwift.SearchNearbyRequest.RankPreference
+    nonisolated public static var allCases: [GooglePlacesSwift.SearchNearbyRequest.RankPreference] {
+      get
+    }
+    public func hash(into hasher: inout Swift.Hasher)
+    public var hashValue: Swift.Int {
+      get
+    }
+  }
+  public init(locationRestriction: any GooglePlacesSwift.CoordinateRegionRestriction, placeProperties: [GooglePlacesSwift.PlaceProperty], includedTypes: Swift.Set<GooglePlacesSwift.PlaceType>? = nil, excludedTypes: Swift.Set<GooglePlacesSwift.PlaceType>? = nil, includedPrimaryTypes: Swift.Set<GooglePlacesSwift.PlaceType>? = nil, excludedPrimaryTypes: Swift.Set<GooglePlacesSwift.PlaceType>? = nil, maxResultCount: Swift.Int = 20, rankPreference: GooglePlacesSwift.SearchNearbyRequest.RankPreference = .popularity, regionCode: Swift.String? = nil, routingParameters: GooglePlacesSwift.RoutingParameters? = nil, shouldIncludeRoutingSummaries: Swift.Bool = false)
+  public var locationRestriction: any GooglePlacesSwift.CoordinateRegionRestriction {
+    get
+  }
+  public var placeProperties: [GooglePlacesSwift.PlaceProperty] {
+    get
+  }
+  public var includedTypes: Swift.Set<GooglePlacesSwift.PlaceType>? {
+    get
+  }
+  public var excludedTypes: Swift.Set<GooglePlacesSwift.PlaceType>? {
+    get
+  }
+  public var includedPrimaryTypes: Swift.Set<GooglePlacesSwift.PlaceType>? {
+    get
+  }
+  public var excludedPrimaryTypes: Swift.Set<GooglePlacesSwift.PlaceType>? {
+    get
+  }
+  public var maxResultCount: Swift.Int {
+    get
+  }
+  public var rankPreference: GooglePlacesSwift.SearchNearbyRequest.RankPreference {
+    get
+  }
+  public var regionCode: Swift.String? {
+    get
+  }
+  public var routingParameters: GooglePlacesSwift.RoutingParameters? {
+    get
+  }
+  public var shouldIncludeRoutingSummaries: Swift.Bool {
+    get
+  }
+  public static func == (a: GooglePlacesSwift.SearchNearbyRequest, b: GooglePlacesSwift.SearchNearbyRequest) -> Swift.Bool
+}
+public struct SearchNearbyResponse : GooglePlacesSwift.SearchResponse, Swift.Sendable {
+  public var places: [GooglePlacesSwift.Place]? {
+    get
+  }
+  public var routingSummaries: [GooglePlacesSwift.RoutingSummary] {
+    get
+  }
+}
+public protocol SearchResponse : Swift.Sendable {
+  var places: [GooglePlacesSwift.Place]? { get }
+  var routingSummaries: [GooglePlacesSwift.RoutingSummary] { get }
+}
+public enum AutocompleteListDensity {
+  case twoLine
+  case multiLine
+  public static func == (a: GooglePlacesSwift.AutocompleteListDensity, b: GooglePlacesSwift.AutocompleteListDensity) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public struct AutocompleteUICustomization {
+  public var listDensity: GooglePlacesSwift.AutocompleteListDensity
+  public var listItemIcon: GooglePlacesSwift.AutocompleteUIIcon
+  public var theme: GooglePlacesSwift.PlacesMaterialTheme
+  public init(listDensity: GooglePlacesSwift.AutocompleteListDensity = .twoLine, listItemIcon: GooglePlacesSwift.AutocompleteUIIcon = .defaultIcon, theme: GooglePlacesSwift.PlacesMaterialTheme = PlacesMaterialTheme())
+}
+public enum AutocompleteUIIcon {
+  case defaultIcon
+  case noIcon
+  public static func == (a: GooglePlacesSwift.AutocompleteUIIcon, b: GooglePlacesSwift.AutocompleteUIIcon) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+extension SwiftUICore.View {
+  @_Concurrency.MainActor public func basicPlaceAutocomplete(filter: GooglePlacesSwift.AutocompleteFilter? = nil, uiCustomization: GooglePlacesSwift.AutocompleteUICustomization = AutocompleteUICustomization(), initialQuery: Swift.String = "", show: SwiftUICore.Binding<Swift.Bool>, onSelection: @escaping (GooglePlacesSwift.Place) -> Swift.Void, onError: @escaping (GooglePlacesSwift.PlacesError) -> Swift.Void) -> some SwiftUICore.View
+  
+}
+extension SwiftUICore.View {
+  @_Concurrency.MainActor public func placeAutocomplete(filter: GooglePlacesSwift.AutocompleteFilter? = nil, uiCustomization: GooglePlacesSwift.AutocompleteUICustomization = AutocompleteUICustomization(), initialQuery: Swift.String = "", sessionToken: GooglePlacesSwift.AutocompleteSessionToken? = nil, show: SwiftUICore.Binding<Swift.Bool>, onSelection: @escaping (GooglePlacesSwift.AutocompletePlaceSuggestion, GooglePlacesSwift.AutocompleteSessionToken) -> Swift.Void, onError: @escaping (GooglePlacesSwift.PlacesError) -> Swift.Void) -> some SwiftUICore.View
+  
+}
+public struct AdvancedPlaceDetailsCompactConfiguration : Swift.Sendable {
+  public let content: Swift.Set<GooglePlacesSwift.AdvancedPlaceDetailsCompactContent>
+  public var preferTruncation: Swift.Bool
+  public let theme: GooglePlacesSwift.PlacesMaterialTheme
+  public init(content: Swift.Set<GooglePlacesSwift.AdvancedPlaceDetailsCompactContent>, preferTruncation: Swift.Bool = false, theme: GooglePlacesSwift.PlacesMaterialTheme)
+}
+public enum AdvancedPlaceDetailsCompactContent : Swift.Hashable, Swift.Sendable {
+  case media(lightbox: Swift.Bool = false)
+  case address(_: Swift.Bool = true)
+  case rating(_: Swift.Bool = true)
+  case type(_: Swift.Bool = true)
+  case price(_: Swift.Bool = true)
+  case accessibleEntranceIcon(_: Swift.Bool = true)
+  case openNowStatus(_: Swift.Bool = true)
+  public func hash(into hasher: inout Swift.Hasher)
+  public static func == (a: GooglePlacesSwift.AdvancedPlaceDetailsCompactContent, b: GooglePlacesSwift.AdvancedPlaceDetailsCompactContent) -> Swift.Bool
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+@_Concurrency.MainActor public struct AdvancedPlaceDetailsCompactView : SwiftUICore.View, GooglePlacesSwift.SearchMediaSupportable {
+  @_Concurrency.MainActor public var orientation: GooglePlacesSwift.PlaceViewOrientation
+  @SwiftUICore.Binding @_projectedValueProperty($query) @_Concurrency.MainActor public var query: GooglePlacesSwift.PlaceDetailsQuery {
+    get
+    @available(iOS 13.0, tvOS 13.0, watchOS 6.0, macOS 10.15, *)
+    nonmutating set
+    @available(iOS 13.0, tvOS 13.0, watchOS 6.0, macOS 10.15, *)
+    nonmutating _modify
+  }
+  @_Concurrency.MainActor public var $query: SwiftUICore.Binding<GooglePlacesSwift.PlaceDetailsQuery> {
+    get
+  }
+  @_Concurrency.MainActor public var configuration: GooglePlacesSwift.AdvancedPlaceDetailsCompactConfiguration
+  @_Concurrency.MainActor public static let standardContent: Swift.Set<GooglePlacesSwift.AdvancedPlaceDetailsCompactContent>
+  @_Concurrency.MainActor public static let allContent: Swift.Set<GooglePlacesSwift.AdvancedPlaceDetailsCompactContent>
+  @_Concurrency.MainActor public init(orientation: GooglePlacesSwift.PlaceViewOrientation = .vertical, query: SwiftUICore.Binding<GooglePlacesSwift.PlaceDetailsQuery>, configuration: GooglePlacesSwift.AdvancedPlaceDetailsCompactConfiguration, placeDetailsCallback: @escaping (GooglePlacesSwift.PlaceDetailsResult) -> Swift.Void)
+  @_Concurrency.MainActor @preconcurrency public var body: some SwiftUICore.View {
+    get
+  }
+  public typealias Body = @_opaqueReturnTypeOf("$s17GooglePlacesSwift31AdvancedPlaceDetailsCompactViewV4bodyQrvp", 0) __
+}
+extension GooglePlacesSwift.AdvancedPlaceDetailsCompactView {
+  @_Concurrency.MainActor public func cornerActions(actionsProvider: @escaping (GooglePlacesSwift.Place) -> [GooglePlacesSwift.CornerPlaceActionElement]) -> GooglePlacesSwift.AdvancedPlaceDetailsCompactView
+  @_Concurrency.MainActor public func mainActions(actionsProvider: @escaping (GooglePlacesSwift.Place) -> [GooglePlacesSwift.MainPlaceActionElement]) -> GooglePlacesSwift.AdvancedPlaceDetailsCompactView
+}
+public struct PlaceDetailsCompactConfiguration : Swift.Sendable {
+  public let content: Swift.Set<GooglePlacesSwift.PlaceDetailsCompactContent>
+  public var preferTruncation: Swift.Bool
+  public let theme: GooglePlacesSwift.PlacesMaterialTheme
+  public init(content: Swift.Set<GooglePlacesSwift.PlaceDetailsCompactContent>, preferTruncation: Swift.Bool = false, theme: GooglePlacesSwift.PlacesMaterialTheme)
+}
+public enum PlaceDetailsCompactContent : Swift.Hashable, Swift.Sendable {
+  case media(lightbox: Swift.Bool = false)
+  case address(_: Swift.Bool = true)
+  case rating(_: Swift.Bool = true)
+  case type(_: Swift.Bool = true)
+  case price(_: Swift.Bool = true)
+  case accessibleEntranceIcon(_: Swift.Bool = true)
+  case openNowStatus(_: Swift.Bool = true)
+  public func hash(into hasher: inout Swift.Hasher)
+  public static func == (a: GooglePlacesSwift.PlaceDetailsCompactContent, b: GooglePlacesSwift.PlaceDetailsCompactContent) -> Swift.Bool
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+@_Concurrency.MainActor public struct PlaceDetailsCompactView : SwiftUICore.View {
+  @_Concurrency.MainActor public var orientation: GooglePlacesSwift.PlaceViewOrientation
+  @SwiftUICore.Binding @_projectedValueProperty($query) @_Concurrency.MainActor public var query: GooglePlacesSwift.PlaceDetailsQuery {
+    get
+    @available(iOS 13.0, tvOS 13.0, watchOS 6.0, macOS 10.15, *)
+    nonmutating set
+    @available(iOS 13.0, tvOS 13.0, watchOS 6.0, macOS 10.15, *)
+    nonmutating _modify
+  }
+  @_Concurrency.MainActor public var $query: SwiftUICore.Binding<GooglePlacesSwift.PlaceDetailsQuery> {
+    get
+  }
+  @_Concurrency.MainActor public var configuration: GooglePlacesSwift.PlaceDetailsCompactConfiguration
+  @_Concurrency.MainActor public static let standardContent: Swift.Set<GooglePlacesSwift.PlaceDetailsCompactContent>
+  @_Concurrency.MainActor public static let allContent: Swift.Set<GooglePlacesSwift.PlaceDetailsCompactContent>
+  @_Concurrency.MainActor public init(orientation: GooglePlacesSwift.PlaceViewOrientation = .vertical, query: SwiftUICore.Binding<GooglePlacesSwift.PlaceDetailsQuery>, configuration: GooglePlacesSwift.PlaceDetailsCompactConfiguration, placeDetailsCallback: @escaping (GooglePlacesSwift.PlaceDetailsResult) -> Swift.Void)
+  @_Concurrency.MainActor @preconcurrency public var body: some SwiftUICore.View {
+    get
+  }
+  public typealias Body = @_opaqueReturnTypeOf("$s17GooglePlacesSwift23PlaceDetailsCompactViewV4bodyQrvp", 0) __
+}
+public struct AdvancedPlaceDetailsConfiguration : Swift.Sendable {
+  public let content: Swift.Set<GooglePlacesSwift.AdvancedPlaceDetailsContent>
+  public var preferTruncation: Swift.Bool
+  public let theme: GooglePlacesSwift.PlacesMaterialTheme
+  public init(content: Swift.Set<GooglePlacesSwift.AdvancedPlaceDetailsContent>, preferTruncation: Swift.Bool = false, theme: GooglePlacesSwift.PlacesMaterialTheme)
+}
+public enum AdvancedPlaceDetailsContent : Swift.Hashable, Swift.Sendable {
+  case media(_: Swift.Bool = true)
+  case address(_: Swift.Bool = true)
+  case rating(_: Swift.Bool = true)
+  case type(_: Swift.Bool = true)
+  case price(_: Swift.Bool = true)
+  case accessibleEntranceIcon(_: Swift.Bool = true)
+  case openNowStatus(_: Swift.Bool = true)
+  case openingHours(_: Swift.Bool = true)
+  case summary(_: Swift.Bool = true)
+  case website(_: Swift.Bool = true)
+  case phoneNumber(_: Swift.Bool = true)
+  case typeSpecificHighlights(_: Swift.Bool = true)
+  case reviews(_: Swift.Bool = true)
+  case plusCode(_: Swift.Bool = true)
+  case featureList(_: Swift.Bool = true)
+  case popularTimes(_: Swift.Bool = true)
+  public static func == (a: GooglePlacesSwift.AdvancedPlaceDetailsContent, b: GooglePlacesSwift.AdvancedPlaceDetailsContent) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+@_Concurrency.MainActor @preconcurrency public struct AdvancedPlaceDetailsView : SwiftUICore.View, GooglePlacesSwift.SearchMediaSupportable, GooglePlacesSwift.SearchReviewsSupportable {
+  @_Concurrency.MainActor @preconcurrency public var orientation: GooglePlacesSwift.PlaceViewOrientation
+  @SwiftUICore.Binding @_projectedValueProperty($query) @_Concurrency.MainActor @preconcurrency public var query: GooglePlacesSwift.PlaceDetailsQuery {
+    get
+    @available(iOS 13.0, tvOS 13.0, watchOS 6.0, macOS 10.15, *)
+    nonmutating set
+    @available(iOS 13.0, tvOS 13.0, watchOS 6.0, macOS 10.15, *)
+    nonmutating _modify
+  }
+  @_Concurrency.MainActor @preconcurrency public var $query: SwiftUICore.Binding<GooglePlacesSwift.PlaceDetailsQuery> {
+    get
+  }
+  @_Concurrency.MainActor @preconcurrency public var configuration: GooglePlacesSwift.AdvancedPlaceDetailsConfiguration
+  @_Concurrency.MainActor @preconcurrency public var placeDetailsCallback: (GooglePlacesSwift.PlaceDetailsResult) -> Swift.Void
+  @_Concurrency.MainActor @preconcurrency public static let standardContent: Swift.Set<GooglePlacesSwift.AdvancedPlaceDetailsContent>
+  @_Concurrency.MainActor @preconcurrency public static let allContent: Swift.Set<GooglePlacesSwift.AdvancedPlaceDetailsContent>
+  @_Concurrency.MainActor @preconcurrency public init(orientation: GooglePlacesSwift.PlaceViewOrientation = .vertical, query: SwiftUICore.Binding<GooglePlacesSwift.PlaceDetailsQuery>, configuration: GooglePlacesSwift.AdvancedPlaceDetailsConfiguration, placeDetailsCallback: @escaping (GooglePlacesSwift.PlaceDetailsResult) -> Swift.Void)
+  @_Concurrency.MainActor @preconcurrency public var body: some SwiftUICore.View {
+    get
+  }
+  public typealias Body = @_opaqueReturnTypeOf("$s17GooglePlacesSwift24AdvancedPlaceDetailsViewV4bodyQrvp", 0) __
+}
+extension GooglePlacesSwift.AdvancedPlaceDetailsView {
+  @_Concurrency.MainActor @preconcurrency public func cornerActions(actionsProvider: @escaping (GooglePlacesSwift.Place) -> [GooglePlacesSwift.CornerPlaceActionElement]) -> GooglePlacesSwift.AdvancedPlaceDetailsView
+  @_Concurrency.MainActor @preconcurrency public func mainActions(actionsProvider: @escaping (GooglePlacesSwift.Place) -> [GooglePlacesSwift.MainPlaceActionElement]) -> GooglePlacesSwift.AdvancedPlaceDetailsView
+}
+public struct PlaceDetailsConfiguration : Swift.Sendable {
+  public let content: Swift.Set<GooglePlacesSwift.PlaceDetailsContent>
+  public var preferTruncation: Swift.Bool
+  public let theme: GooglePlacesSwift.PlacesMaterialTheme
+  public init(content: Swift.Set<GooglePlacesSwift.PlaceDetailsContent>, preferTruncation: Swift.Bool = false, theme: GooglePlacesSwift.PlacesMaterialTheme)
+}
+public enum PlaceDetailsContent : Swift.Hashable, Swift.Sendable {
+  case media(_: Swift.Bool = true)
+  case address(_: Swift.Bool = true)
+  case rating(_: Swift.Bool = true)
+  case type(_: Swift.Bool = true)
+  case price(_: Swift.Bool = true)
+  case accessibleEntranceIcon(_: Swift.Bool = true)
+  case openNowStatus(_: Swift.Bool = true)
+  case openingHours(_: Swift.Bool = true)
+  case summary(_: Swift.Bool = true)
+  case website(_: Swift.Bool = true)
+  case phoneNumber(_: Swift.Bool = true)
+  case typeSpecificHighlights(_: Swift.Bool = true)
+  case reviews(_: Swift.Bool = true)
+  case plusCode(_: Swift.Bool = true)
+  case featureList(_: Swift.Bool = true)
+  case popularTimes(_: Swift.Bool = true)
+  public static func == (a: GooglePlacesSwift.PlaceDetailsContent, b: GooglePlacesSwift.PlaceDetailsContent) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+@_Concurrency.MainActor @preconcurrency public struct PlaceDetailsView : SwiftUICore.View {
+  @_Concurrency.MainActor @preconcurrency public var orientation: GooglePlacesSwift.PlaceViewOrientation
+  @SwiftUICore.Binding @_projectedValueProperty($query) @_Concurrency.MainActor @preconcurrency public var query: GooglePlacesSwift.PlaceDetailsQuery {
+    get
+    @available(iOS 13.0, tvOS 13.0, watchOS 6.0, macOS 10.15, *)
+    nonmutating set
+    @available(iOS 13.0, tvOS 13.0, watchOS 6.0, macOS 10.15, *)
+    nonmutating _modify
+  }
+  @_Concurrency.MainActor @preconcurrency public var $query: SwiftUICore.Binding<GooglePlacesSwift.PlaceDetailsQuery> {
+    get
+  }
+  @_Concurrency.MainActor @preconcurrency public var configuration: GooglePlacesSwift.PlaceDetailsConfiguration
+  @_Concurrency.MainActor @preconcurrency public static let standardContent: Swift.Set<GooglePlacesSwift.PlaceDetailsContent>
+  @_Concurrency.MainActor @preconcurrency public static let allContent: Swift.Set<GooglePlacesSwift.PlaceDetailsContent>
+  @_Concurrency.MainActor @preconcurrency public init(orientation: GooglePlacesSwift.PlaceViewOrientation = .vertical, query: SwiftUICore.Binding<GooglePlacesSwift.PlaceDetailsQuery>, configuration: GooglePlacesSwift.PlaceDetailsConfiguration, placeDetailsCallback: @escaping (GooglePlacesSwift.PlaceDetailsResult) -> Swift.Void)
+  @_Concurrency.MainActor @preconcurrency public var body: some SwiftUICore.View {
+    get
+  }
+  public typealias Body = @_opaqueReturnTypeOf("$s17GooglePlacesSwift16PlaceDetailsViewV4bodyQrvp", 0) __
+}
+public enum SearchReviewsRankPreference : Swift.CaseIterable, Swift.Sendable {
+  case unspecified
+  case mostRelevant
+  case newest
+  case highestRating
+  case lowestRating
+  public static func == (a: GooglePlacesSwift.SearchReviewsRankPreference, b: GooglePlacesSwift.SearchReviewsRankPreference) -> Swift.Bool
+  public typealias AllCases = [GooglePlacesSwift.SearchReviewsRankPreference]
+  nonisolated public static var allCases: [GooglePlacesSwift.SearchReviewsRankPreference] {
+    get
+  }
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public struct SearchReviewsOptions : Swift.Equatable, Swift.Sendable {
+  public var query: Swift.String?
+  public var rankPreference: GooglePlacesSwift.SearchReviewsRankPreference
+  public init(query: Swift.String? = nil, rankPreference: GooglePlacesSwift.SearchReviewsRankPreference = .unspecified)
+  public static func == (a: GooglePlacesSwift.SearchReviewsOptions, b: GooglePlacesSwift.SearchReviewsOptions) -> Swift.Bool
+}
+public struct SearchReviewsSummary {
+  public let numberOfResults: Swift.Int
+}
+public protocol SearchReviewsSupportable {
+}
+extension GooglePlacesSwift.SearchReviewsSupportable {
+  @_Concurrency.MainActor public func searchReviewsOptions(_ options: GooglePlacesSwift.SearchReviewsOptions?, completion: (([Swift.Result<GooglePlacesSwift.SearchReviewsSummary, GooglePlacesSwift.PlacesError>]) -> Swift.Void)? = nil) -> Self
+}
+public enum PlaceIdentifier {
+  case placeID(Swift.String)
+  case resourceName(Swift.String)
+  case coordinate(_LocationEssentials.CLLocationCoordinate2D)
+}
+public struct PlaceDetailsQuery : Swift.Equatable {
+  @_documentation(visibility: internal) public static func _createInternalQuery(identifier: GooglePlacesSwift.PlaceIdentifier, internalJWT: Swift.String, internalPlaceProperties: [GooglePlacesSwift.PlaceProperty] = [.displayName, .formattedAddress], internalLanguageCode: Swift.String? = nil, internalRegionCode: Swift.String? = nil) -> GooglePlacesSwift.PlaceDetailsQuery
+  public init(identifier: GooglePlacesSwift.PlaceIdentifier)
+  public static func == (lhs: GooglePlacesSwift.PlaceDetailsQuery, rhs: GooglePlacesSwift.PlaceDetailsQuery) -> Swift.Bool
+}
+public enum PlaceDetailsWarning : Swift.String, Swift.Sendable {
+  case emptyPopularTimesData
+  public init?(rawValue: Swift.String)
+  public typealias RawValue = Swift.String
+  public var rawValue: Swift.String {
+    get
+  }
+}
+final public class PlaceDetailsResult : Combine.ObservableObject {
+  @Combine.Published<GooglePlacesSwift.Place?> @_projectedValueProperty($place) final public var place: GooglePlacesSwift.Place? {
+    get
+    @available(iOS 13.0, tvOS 13.0, watchOS 6.0, macOS 10.15, *)
+    set
+    @available(iOS 13.0, tvOS 13.0, watchOS 6.0, macOS 10.15, *)
+    _modify
+  }
+  final public var $place: Combine.Published<GooglePlacesSwift.Place?>.Publisher {
+    get
+    @available(iOS 14.0, tvOS 14.0, watchOS 7.0, macOS 11.0, *)
+    set
+  }
+  @Combine.Published<(any Swift.Error)?> @_projectedValueProperty($error) final public var error: (any Swift.Error)? {
+    get
+    @available(iOS 13.0, tvOS 13.0, watchOS 6.0, macOS 10.15, *)
+    set
+    @available(iOS 13.0, tvOS 13.0, watchOS 6.0, macOS 10.15, *)
+    _modify
+  }
+  final public var $error: Combine.Published<(any Swift.Error)?>.Publisher {
+    get
+    @available(iOS 14.0, tvOS 14.0, watchOS 7.0, macOS 11.0, *)
+    set
+  }
+  @Combine.Published<Swift.Set<GooglePlacesSwift.PlaceDetailsWarning>?> @_projectedValueProperty($warnings) final public var warnings: Swift.Set<GooglePlacesSwift.PlaceDetailsWarning>? {
+    get
+    @available(iOS 13.0, tvOS 13.0, watchOS 6.0, macOS 10.15, *)
+    set
+    @available(iOS 13.0, tvOS 13.0, watchOS 6.0, macOS 10.15, *)
+    _modify
+  }
+  final public var $warnings: Combine.Published<Swift.Set<GooglePlacesSwift.PlaceDetailsWarning>?>.Publisher {
+    get
+    @available(iOS 14.0, tvOS 14.0, watchOS 7.0, macOS 11.0, *)
+    set
+  }
+  public init()
+  public typealias ObjectWillChangePublisher = Combine.ObservableObjectPublisher
+  @objc deinit
+}
+public struct AdvancedPlaceListConfiguration : Swift.Sendable {
+  public let content: Swift.Set<GooglePlacesSwift.AdvancedPlaceListContent>
+  public let preferTruncation: Swift.Bool
+  public let theme: GooglePlacesSwift.PlacesMaterialTheme
+  public let attributionPosition: GooglePlacesSwift.PlaceViewAttributionPosition
+  public let selectable: Swift.Bool
+  public init(content: Swift.Set<GooglePlacesSwift.AdvancedPlaceListContent>, preferTruncation: Swift.Bool = false, theme: GooglePlacesSwift.PlacesMaterialTheme, attributionPosition: GooglePlacesSwift.PlaceViewAttributionPosition = .top, selectable: Swift.Bool = false)
+}
+public enum AdvancedPlaceListContent : Swift.Hashable, Swift.Sendable {
+  case media(size: GooglePlacesSwift.PlaceViewMediaSize = .small)
+  case address(_: Swift.Bool = true)
+  case rating(_: Swift.Bool = true)
+  case type(_: Swift.Bool = true)
+  case price(_: Swift.Bool = true)
+  case accessibleEntranceIcon(_: Swift.Bool = true)
+  case openNowStatus(_: Swift.Bool = true)
+  public var id: GooglePlacesSwift.AdvancedPlaceListContent {
+    get
+  }
+  public static func == (a: GooglePlacesSwift.AdvancedPlaceListContent, b: GooglePlacesSwift.AdvancedPlaceListContent) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+@_Concurrency.MainActor public struct AdvancedPlaceListView : SwiftUICore.View, GooglePlacesSwift.SearchMediaSupportable {
+  @_Concurrency.MainActor public static let standardContent: Swift.Set<GooglePlacesSwift.AdvancedPlaceListContent>
+  @_Concurrency.MainActor public static let allContent: Swift.Set<GooglePlacesSwift.AdvancedPlaceListContent>
+  @_Concurrency.MainActor public init(orientation: GooglePlacesSwift.PlaceViewOrientation = .vertical, queries: SwiftUICore.Binding<[GooglePlacesSwift.PlaceDetailsQuery]>, configuration: GooglePlacesSwift.AdvancedPlaceListConfiguration)
+  @_Concurrency.MainActor @preconcurrency public var body: some SwiftUICore.View {
+    get
+  }
+  public typealias Body = @_opaqueReturnTypeOf("$s17GooglePlacesSwift21AdvancedPlaceListViewV4bodyQrvp", 0) __
+}
+extension GooglePlacesSwift.AdvancedPlaceListView {
+  @_Concurrency.MainActor public func onLoad(_ callback: @escaping ([Swift.Result<GooglePlacesSwift.Place, GooglePlacesSwift.PlacesError>]) -> Swift.Void) -> GooglePlacesSwift.AdvancedPlaceListView
+  @_Concurrency.MainActor public func onPlaceSelected(_ callback: @escaping (GooglePlacesSwift.Place) -> Swift.Void) -> GooglePlacesSwift.AdvancedPlaceListView
+  @_Concurrency.MainActor public func cornerActions(actionsProvider: @escaping (GooglePlacesSwift.Place) -> [GooglePlacesSwift.CornerPlaceActionElement]) -> GooglePlacesSwift.AdvancedPlaceListView
+  @_Concurrency.MainActor public func mainActions(actionsProvider: @escaping (GooglePlacesSwift.Place) -> [GooglePlacesSwift.MainPlaceActionElement]) -> GooglePlacesSwift.AdvancedPlaceListView
+}
+public struct AdvancedPlaceSearchConfiguration : Swift.Sendable {
+  public let content: Swift.Set<GooglePlacesSwift.AdvancedPlaceSearchContent>
+  public let preferTruncation: Swift.Bool
+  public let theme: GooglePlacesSwift.PlacesMaterialTheme
+  public let attributionPosition: GooglePlacesSwift.PlaceViewAttributionPosition
+  public let selectable: Swift.Bool
+  public init(content: Swift.Set<GooglePlacesSwift.AdvancedPlaceSearchContent>, preferTruncation: Swift.Bool = false, theme: GooglePlacesSwift.PlacesMaterialTheme, attributionPosition: GooglePlacesSwift.PlaceViewAttributionPosition = .top, selectable: Swift.Bool = false)
+}
+public enum AdvancedPlaceSearchContent : Swift.Hashable, Swift.Sendable {
+  case media(size: GooglePlacesSwift.PlaceViewMediaSize = .small)
+  case address(_: Swift.Bool = true)
+  case rating(_: Swift.Bool = true)
+  case type(_: Swift.Bool = true)
+  case price(_: Swift.Bool = true)
+  case accessibleEntranceIcon(_: Swift.Bool = true)
+  case openNowStatus(_: Swift.Bool = true)
+  public var id: GooglePlacesSwift.AdvancedPlaceSearchContent {
+    get
+  }
+  public static func == (a: GooglePlacesSwift.AdvancedPlaceSearchContent, b: GooglePlacesSwift.AdvancedPlaceSearchContent) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+@_Concurrency.MainActor public struct AdvancedPlaceSearchView : SwiftUICore.View, GooglePlacesSwift.SearchMediaSupportable {
+  @_Concurrency.MainActor public static let standardContent: Swift.Set<GooglePlacesSwift.AdvancedPlaceSearchContent>
+  @_Concurrency.MainActor public static let allContent: Swift.Set<GooglePlacesSwift.AdvancedPlaceSearchContent>
+  @_Concurrency.MainActor public init(orientation: GooglePlacesSwift.PlaceViewOrientation = .vertical, request: SwiftUICore.Binding<GooglePlacesSwift.PlaceSearchViewRequest>, configuration: GooglePlacesSwift.AdvancedPlaceSearchConfiguration)
+  @_Concurrency.MainActor @preconcurrency public var body: some SwiftUICore.View {
+    get
+  }
+  public typealias Body = @_opaqueReturnTypeOf("$s17GooglePlacesSwift23AdvancedPlaceSearchViewV4bodyQrvp", 0) __
+}
+extension GooglePlacesSwift.AdvancedPlaceSearchView {
+  @_Concurrency.MainActor public func onLoad(_ callback: @escaping ([GooglePlacesSwift.Place]) -> Swift.Void) -> GooglePlacesSwift.AdvancedPlaceSearchView
+  @_Concurrency.MainActor public func onRequestError(_ callback: @escaping (GooglePlacesSwift.PlacesError) -> Swift.Void) -> GooglePlacesSwift.AdvancedPlaceSearchView
+  @_Concurrency.MainActor public func onPlaceSelected(_ callback: @escaping (GooglePlacesSwift.Place) -> Swift.Void) -> GooglePlacesSwift.AdvancedPlaceSearchView
+  @_Concurrency.MainActor public func cornerActions(actionsProvider: @escaping (GooglePlacesSwift.Place) -> [GooglePlacesSwift.CornerPlaceActionElement]) -> GooglePlacesSwift.AdvancedPlaceSearchView
+  @_Concurrency.MainActor public func mainActions(actionsProvider: @escaping (GooglePlacesSwift.Place) -> [GooglePlacesSwift.MainPlaceActionElement]) -> GooglePlacesSwift.AdvancedPlaceSearchView
+}
+public struct PlaceSearchConfiguration : Swift.Sendable {
+  public let content: Swift.Set<GooglePlacesSwift.PlaceSearchContent>
+  public let preferTruncation: Swift.Bool
+  public let theme: GooglePlacesSwift.PlacesMaterialTheme
+  public let attributionPosition: GooglePlacesSwift.PlaceViewAttributionPosition
+  public let selectable: Swift.Bool
+  public init(content: Swift.Set<GooglePlacesSwift.PlaceSearchContent>, preferTruncation: Swift.Bool = false, theme: GooglePlacesSwift.PlacesMaterialTheme, attributionPosition: GooglePlacesSwift.PlaceViewAttributionPosition = .top, selectable: Swift.Bool = false)
+}
+public enum PlaceSearchContent : Swift.Hashable, Swift.Sendable {
+  case media(size: GooglePlacesSwift.PlaceViewMediaSize = .small)
+  case address(_: Swift.Bool = true)
+  case rating(_: Swift.Bool = true)
+  case type(_: Swift.Bool = true)
+  case price(_: Swift.Bool = true)
+  case accessibleEntranceIcon(_: Swift.Bool = true)
+  case openNowStatus(_: Swift.Bool = true)
+  public var id: GooglePlacesSwift.PlaceSearchContent {
+    get
+  }
+  public static func == (a: GooglePlacesSwift.PlaceSearchContent, b: GooglePlacesSwift.PlaceSearchContent) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public enum PlaceSearchViewRequest : Swift.Equatable {
+  case searchByText(GooglePlacesSwift.SearchByTextRequest)
+  case searchNearby(GooglePlacesSwift.SearchNearbyRequest)
+  public static func == (a: GooglePlacesSwift.PlaceSearchViewRequest, b: GooglePlacesSwift.PlaceSearchViewRequest) -> Swift.Bool
+}
+@_Concurrency.MainActor public struct PlaceSearchView : SwiftUICore.View {
+  @_Concurrency.MainActor public static let standardContent: Swift.Set<GooglePlacesSwift.PlaceSearchContent>
+  @_Concurrency.MainActor public static let allContent: Swift.Set<GooglePlacesSwift.PlaceSearchContent>
+  @_Concurrency.MainActor public init(orientation: GooglePlacesSwift.PlaceViewOrientation = .vertical, request: SwiftUICore.Binding<GooglePlacesSwift.PlaceSearchViewRequest>, configuration: GooglePlacesSwift.PlaceSearchConfiguration)
+  @_Concurrency.MainActor @preconcurrency public var body: some SwiftUICore.View {
+    get
+  }
+  public typealias Body = @_opaqueReturnTypeOf("$s17GooglePlacesSwift15PlaceSearchViewV4bodyQrvp", 0) __
+}
+extension GooglePlacesSwift.PlaceSearchView {
+  @_Concurrency.MainActor public func onLoad(_ callback: @escaping ([GooglePlacesSwift.Place]) -> Swift.Void) -> GooglePlacesSwift.PlaceSearchView
+  @_Concurrency.MainActor public func onRequestError(_ callback: @escaping (GooglePlacesSwift.PlacesError) -> Swift.Void) -> GooglePlacesSwift.PlaceSearchView
+  @_Concurrency.MainActor public func onPlaceSelected(_ callback: @escaping (GooglePlacesSwift.Place) -> Swift.Void) -> GooglePlacesSwift.PlaceSearchView
+}
+public enum CornerPlaceActionElement {
+  case actionId(GooglePlacesSwift.PlaceActionID)
+  case action(GooglePlacesSwift.CornerPlaceAction)
+}
+public enum MainPlaceActionElement {
+  case actionId(GooglePlacesSwift.PlaceActionID)
+  case action(GooglePlacesSwift.MainPlaceAction)
+}
+public enum PlaceActionID : Swift.Equatable {
+  case openMap(style: GooglePlacesSwift.PlaceActionStyle = .secondary)
+  case openDirections(style: GooglePlacesSwift.PlaceActionStyle = .secondary)
+  case openWebsite(style: GooglePlacesSwift.PlaceActionStyle = .secondary)
+  case call(style: GooglePlacesSwift.PlaceActionStyle = .secondary)
+  public static func == (a: GooglePlacesSwift.PlaceActionID, b: GooglePlacesSwift.PlaceActionID) -> Swift.Bool
+}
+public struct CornerPlaceAction {
+  public let image: SwiftUICore.Image
+  public let accessibilityLabel: Swift.String
+  public let style: GooglePlacesSwift.PlaceActionStyle
+  public let onTap: (GooglePlacesSwift.Place) -> Swift.Void
+  public init(image: SwiftUICore.Image, accessibilityLabel: Swift.String, style: GooglePlacesSwift.PlaceActionStyle = .secondary, onTap: @escaping (GooglePlacesSwift.Place) -> Swift.Void)
+}
+public struct MainPlaceAction {
+  public let image: SwiftUICore.Image?
+  public let label: Swift.String
+  public let accessibilityLabel: Swift.String?
+  public let style: GooglePlacesSwift.PlaceActionStyle
+  public let onTap: (GooglePlacesSwift.Place) -> Swift.Void
+  public init(image: SwiftUICore.Image? = nil, label: Swift.String, accessibilityLabel: Swift.String? = nil, style: GooglePlacesSwift.PlaceActionStyle = .secondary, onTap: @escaping (GooglePlacesSwift.Place) -> Swift.Void)
+}
+public enum PlaceActionStyle : Swift.Equatable {
+  case secondary
+  case primary
+  public static func == (a: GooglePlacesSwift.PlaceActionStyle, b: GooglePlacesSwift.PlaceActionStyle) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public enum PlaceViewAttributionPosition : Swift.Equatable, Swift.Sendable {
+  case top
+  case bottom
+  public var id: GooglePlacesSwift.PlaceViewAttributionPosition {
+    get
+  }
+  public static func == (a: GooglePlacesSwift.PlaceViewAttributionPosition, b: GooglePlacesSwift.PlaceViewAttributionPosition) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public enum PlaceViewMediaSize : Swift.Equatable, Swift.Sendable {
+  case small
+  case medium
+  case large
+  public var id: GooglePlacesSwift.PlaceViewMediaSize {
+    get
+  }
+  public static func == (a: GooglePlacesSwift.PlaceViewMediaSize, b: GooglePlacesSwift.PlaceViewMediaSize) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public enum PlaceViewOrientation : Swift.Equatable, Swift.Sendable {
+  case vertical
+  case horizontal
+  public var id: GooglePlacesSwift.PlaceViewOrientation {
+    get
+  }
+  public static func == (a: GooglePlacesSwift.PlaceViewOrientation, b: GooglePlacesSwift.PlaceViewOrientation) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public enum PlacesAttributionColor : Swift.Sendable, Swift.Equatable, Swift.Hashable {
+  case black
+  case white
+  case gray
+  public static func == (a: GooglePlacesSwift.PlacesAttributionColor, b: GooglePlacesSwift.PlacesAttributionColor) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public struct PlacesMaterialTheme : Swift.Sendable, Swift.Equatable, Swift.Hashable {
+  public var color: GooglePlacesSwift.PlacesMaterialColor
+  public var font: GooglePlacesSwift.PlacesMaterialFont
+  public var attribution: GooglePlacesSwift.PlacesMaterialAttribution
+  public var shape: GooglePlacesSwift.PlacesMaterialShape
+  public var measurement: GooglePlacesSwift.PlacesMaterialMeasurement
+  public init()
+  public static func == (a: GooglePlacesSwift.PlacesMaterialTheme, b: GooglePlacesSwift.PlacesMaterialTheme) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public struct PlacesMaterialColor : Swift.Sendable, Swift.Equatable, Swift.Hashable {
+  public var buttonBorder: SwiftUICore.Color
+  public var buttonPrimaryBorder: SwiftUICore.Color
+  public var surface: SwiftUICore.Color
+  @available(*, deprecated, message: "Not supported in the new design.")
+  public var surfaceImmersive: SwiftUICore.Color
+  public var outlineDecorative: SwiftUICore.Color
+  public var onSurface: SwiftUICore.Color
+  public var onSurfaceVariant: SwiftUICore.Color
+  public var onPrimaryContainer: SwiftUICore.Color
+  public var primaryContainer: SwiftUICore.Color
+  public var onSecondaryContainer: SwiftUICore.Color
+  public var secondaryContainer: SwiftUICore.Color
+  public var positive: SwiftUICore.Color
+  public var negative: SwiftUICore.Color
+  public var primary: SwiftUICore.Color
+  public var info: SwiftUICore.Color
+  public var positiveContainer: SwiftUICore.Color
+  public var onPositiveContainer: SwiftUICore.Color
+  public var onNeutralContainer: SwiftUICore.Color
+  public var neutralContainer: SwiftUICore.Color
+  public var disabledSurface: SwiftUICore.Color
+  public var starRating: SwiftUICore.Color
+  public var onNeutralContainerVariant: SwiftUICore.Color
+  public var popularTimesBar: SwiftUICore.Color
+  public var popularTimesBarCurrentHour: SwiftUICore.Color
+  public var popularTimesBarCurrentHourLive: SwiftUICore.Color
+  public init()
+  public static func == (a: GooglePlacesSwift.PlacesMaterialColor, b: GooglePlacesSwift.PlacesMaterialColor) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public struct PlacesMaterialShape : Swift.Sendable, Swift.Equatable, Swift.Hashable {
+  public var cornerRadius: CoreFoundation.CGFloat
+  public var cornerRadiusThumbnail: CoreFoundation.CGFloat
+  public var cornerRadiusButton: CoreFoundation.CGFloat
+  public var cornerRadiusButtonPrimary: CoreFoundation.CGFloat
+  public var cornerRadiusDialog: CoreFoundation.CGFloat
+  public var cornerRadiusCollageOuter: CoreFoundation.CGFloat
+  public var cornerRadiusCard: CoreFoundation.CGFloat
+  public init()
+  public static func == (a: GooglePlacesSwift.PlacesMaterialShape, b: GooglePlacesSwift.PlacesMaterialShape) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public struct PlacesMaterialFont : Swift.Sendable, Swift.Equatable, Swift.Hashable {
+  public var labelLarge: SwiftUICore.Font {
+    get
+    set
+  }
+  public var headlineMedium: SwiftUICore.Font {
+    get
+    set
+  }
+  @available(*, deprecated, message: "Not supported in the new design.")
+  public var bodyLarge: SwiftUICore.Font {
+    get
+    set
+  }
+  public var bodyMedium: SwiftUICore.Font {
+    get
+    set
+  }
+  public var bodySmall: SwiftUICore.Font {
+    get
+    set
+  }
+  public var displaySmall: SwiftUICore.Font {
+    get
+    set
+  }
+  public var labelMedium: SwiftUICore.Font {
+    get
+    set
+  }
+  public var titleSmall: SwiftUICore.Font {
+    get
+    set
+  }
+  public var titleMedium: SwiftUICore.Font {
+    get
+    set
+  }
+  public var titleLarge: SwiftUICore.Font {
+    get
+    set
+  }
+  public init()
+  public static func == (a: GooglePlacesSwift.PlacesMaterialFont, b: GooglePlacesSwift.PlacesMaterialFont) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public struct PlacesMaterialAttribution : Swift.Sendable, Swift.Equatable, Swift.Hashable {
+  public var lightModeColor: GooglePlacesSwift.PlacesAttributionColor
+  public var darkModeColor: GooglePlacesSwift.PlacesAttributionColor
+  public init()
+  public static func == (a: GooglePlacesSwift.PlacesMaterialAttribution, b: GooglePlacesSwift.PlacesMaterialAttribution) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public struct PlacesMaterialMeasurement : Swift.Sendable, Swift.Equatable, Swift.Hashable {
+  public var spacingExtraSmall: CoreFoundation.CGFloat
+  public var spacingSmall: CoreFoundation.CGFloat
+  public var spacingMedium: CoreFoundation.CGFloat
+  public var spacingLarge: CoreFoundation.CGFloat
+  public var spacingExtraLarge: CoreFoundation.CGFloat
+  public var spacingTwoExtraLarge: CoreFoundation.CGFloat
+  @available(*, deprecated, message: "Not supported in the new design.")
+  public var spacingMargin: CoreFoundation.CGFloat
+  public var borderWidth: CoreFoundation.CGFloat
+  public var borderWidthButton: CoreFoundation.CGFloat
+  public var borderWidthButtonPrimary: CoreFoundation.CGFloat
+  public init()
+  public static func == (a: GooglePlacesSwift.PlacesMaterialMeasurement, b: GooglePlacesSwift.PlacesMaterialMeasurement) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public enum SearchMediaRankPreference : Swift.Sendable {
+  case unspecified
+  case mostRelevant
+  case newest
+  public static func == (a: GooglePlacesSwift.SearchMediaRankPreference, b: GooglePlacesSwift.SearchMediaRankPreference) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public struct SearchMediaOptions : Swift.Equatable, Swift.Sendable {
+  public var query: Swift.String?
+  public var rankPreference: GooglePlacesSwift.SearchMediaRankPreference
+  public init(query: Swift.String? = nil, rankPreference: GooglePlacesSwift.SearchMediaRankPreference = .unspecified)
+  public static func == (a: GooglePlacesSwift.SearchMediaOptions, b: GooglePlacesSwift.SearchMediaOptions) -> Swift.Bool
+}
+public struct SearchMediaSummary : Swift.Sendable {
+  public let numberOfResults: Swift.Int
+}
+@_Concurrency.MainActor @preconcurrency public protocol SearchMediaSupportable : SwiftUICore.View {
+}
+extension GooglePlacesSwift.SearchMediaSupportable {
+  @_Concurrency.MainActor public func searchMediaOptions(_ options: GooglePlacesSwift.SearchMediaOptions?, completion: (@Sendable ([Swift.Result<GooglePlacesSwift.SearchMediaSummary, GooglePlacesSwift.PlacesError>]) -> Swift.Void)? = nil) -> Self
+}
+extension GooglePlacesSwift.Area.Containment : Swift.Hashable {}
+extension GooglePlacesSwift.EVConnectorType : Swift.Equatable {}
+extension GooglePlacesSwift.EVConnectorType : Swift.Hashable {}
+extension GooglePlacesSwift.EVConnectorType : Swift.RawRepresentable {}
+extension GooglePlacesSwift.FuelType : Swift.Equatable {}
+extension GooglePlacesSwift.FuelType : Swift.Hashable {}
+extension GooglePlacesSwift.FuelType : Swift.RawRepresentable {}
+extension GooglePlacesSwift.Landmark.SpatialRelationship : Swift.Hashable {}
+extension GooglePlacesSwift.OpenNowStatus : Swift.Equatable {}
+extension GooglePlacesSwift.OpenNowStatus : Swift.Hashable {}
+extension GooglePlacesSwift.OpenNowStatus : Swift.RawRepresentable {}
+extension GooglePlacesSwift.HoursType : Swift.Equatable {}
+extension GooglePlacesSwift.HoursType : Swift.Hashable {}
+extension GooglePlacesSwift.HoursType : Swift.RawRepresentable {}
+extension GooglePlacesSwift.DayOfWeek : Swift.Equatable {}
+extension GooglePlacesSwift.DayOfWeek : Swift.Hashable {}
+extension GooglePlacesSwift.DayOfWeek : Swift.RawRepresentable {}
+extension GooglePlacesSwift.PlaceProperty : Swift.Equatable {}
+extension GooglePlacesSwift.PlaceProperty : Swift.Hashable {}
+extension GooglePlacesSwift.TravelMode : Swift.Equatable {}
+extension GooglePlacesSwift.TravelMode : Swift.Hashable {}
+extension GooglePlacesSwift.TravelMode : Swift.RawRepresentable {}
+extension GooglePlacesSwift.RoutingPreference : Swift.Equatable {}
+extension GooglePlacesSwift.RoutingPreference : Swift.Hashable {}
+extension GooglePlacesSwift.RoutingPreference : Swift.RawRepresentable {}
+extension GooglePlacesSwift.AutocompleteListDensity : Swift.Equatable {}
+extension GooglePlacesSwift.AutocompleteListDensity : Swift.Hashable {}
+extension GooglePlacesSwift.AutocompleteUIIcon : Swift.Equatable {}
+extension GooglePlacesSwift.AutocompleteUIIcon : Swift.Hashable {}
+extension GooglePlacesSwift.AdvancedPlaceDetailsCompactView : Swift.Sendable {}
+extension GooglePlacesSwift.PlaceDetailsCompactView : Swift.Sendable {}
+extension GooglePlacesSwift.AdvancedPlaceDetailsView : Swift.Sendable {}
+extension GooglePlacesSwift.PlaceDetailsView : Swift.Sendable {}
+extension GooglePlacesSwift.SearchReviewsRankPreference : Swift.Equatable {}
+extension GooglePlacesSwift.SearchReviewsRankPreference : Swift.Hashable {}
+extension GooglePlacesSwift.PlaceDetailsWarning : Swift.Equatable {}
+extension GooglePlacesSwift.PlaceDetailsWarning : Swift.Hashable {}
+extension GooglePlacesSwift.PlaceDetailsWarning : Swift.RawRepresentable {}
+extension GooglePlacesSwift.AdvancedPlaceListView : Swift.Sendable {}
+extension GooglePlacesSwift.AdvancedPlaceSearchView : Swift.Sendable {}
+extension GooglePlacesSwift.PlaceSearchView : Swift.Sendable {}
+extension GooglePlacesSwift.PlaceActionStyle : Swift.Hashable {}
+extension GooglePlacesSwift.PlaceViewAttributionPosition : Swift.Hashable {}
+extension GooglePlacesSwift.PlaceViewMediaSize : Swift.Hashable {}
+extension GooglePlacesSwift.PlaceViewOrientation : Swift.Hashable {}
+extension GooglePlacesSwift.SearchMediaRankPreference : Swift.Equatable {}
+extension GooglePlacesSwift.SearchMediaRankPreference : Swift.Hashable {}

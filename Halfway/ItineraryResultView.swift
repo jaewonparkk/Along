@@ -1,6 +1,7 @@
 import SwiftUI
 import MapKit
 import CoreLocation
+import SwiftData
 
 
 struct ItineraryResultView: View {
@@ -30,6 +31,15 @@ struct ItineraryResultView: View {
     let hasCurrentLocation:
         Bool
 
+    let finishBy:
+        Date
+
+    let suggestedPlaceIDs:
+        Set<UUID>
+
+    let onAddSuggestedStop:
+        (RouteSuggestion) -> Void
+
 
     let onEdit:
         () -> Void
@@ -39,6 +49,21 @@ struct ItineraryResultView: View {
 
     @Environment(\.dismiss)
     private var dismiss
+
+    @Environment(\.modelContext)
+    private var modelContext
+
+    @StateObject
+    private var suggestionService = RouteSuggestionService()
+
+    @State
+    private var selectedPlace: PlannedPlace?
+
+    @State
+    private var isSavePromptPresented = false
+
+    @State
+    private var didSave = false
 
 
     // MARK: - Body
@@ -61,6 +86,10 @@ struct ItineraryResultView: View {
                     summaryCard
 
                     itinerarySection
+
+                    if remainingTime >= 60 * 60 {
+                        earlyFinishCard
+                    }
 
                     bottomActions
                 }
@@ -97,6 +126,96 @@ struct ItineraryResultView: View {
                 }
             }
         }
+        .sheet(item: $selectedPlace) { place in
+            PlaceDetailView(
+                place: place,
+                scheduled: scheduledStop(for: place)
+            )
+        }
+        .sheet(isPresented: $isSavePromptPresented) {
+            SaveDayPrompt(defaultTitle: defaultSavedTitle) { title in
+                saveDay(title: title)
+            }
+        }
+    }
+
+    private var remainingTime: TimeInterval {
+        guard let finish = itinerary.estimatedFinishTime else { return 0 }
+        return max(0, finishBy.timeIntervalSince(finish))
+    }
+
+    private var earlyFinishCard: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Label(
+                "You have \(formatTime(remainingTime)) left",
+                systemImage: "sparkles"
+            )
+            .font(.headline)
+
+            Text("Your plan ends earlier than you wanted. Want to see places that fit along this route?")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
+                suggestionButton(.food)
+                suggestionButton(.coffee)
+                suggestionButton(.shopping)
+                suggestionButton(.activity)
+            }
+
+            if suggestionService.isLoading {
+                HStack {
+                    ProgressView()
+                    Text("Finding places along your route...")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            } else if let message = suggestionService.message {
+                Text(message)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            } else if !suggestionService.suggestions.isEmpty {
+                Divider()
+                ForEach(suggestionService.suggestions) { suggestion in
+                    Button {
+                        onAddSuggestedStop(suggestion)
+                    } label: {
+                        HStack(spacing: 10) {
+                            Image(systemName: suggestion.category.icon)
+                                .frame(width: 24)
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text(suggestion.mapItem.name ?? "Suggested place")
+                                    .font(.subheadline.weight(.semibold))
+                                    .foregroundStyle(.primary)
+                                Text("Fits between stops • about \(formatDistance(suggestion.addedDistance)) extra")
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
+                            }
+                            Spacer()
+                            Image(systemName: "plus.circle.fill")
+                        }
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+        .padding(18)
+        .background(Color.accentColor.opacity(0.09))
+        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+    }
+
+    private func suggestionButton(_ category: FlexibleStopCategory) -> some View {
+        Button {
+            suggestionService.search(
+                category: category,
+                along: itinerary.orderedPlaces
+            )
+        } label: {
+            Label(category.title, systemImage: category.icon)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 10)
+        }
+        .buttonStyle(.bordered)
     }
 
 
@@ -152,7 +271,7 @@ struct ItineraryResultView: View {
                 .hasTimingConflicts {
 
                 Label(
-                    "One or more stops fall outside your preferred time.",
+                    "One or more stops need your attention.",
                     systemImage:
                         "exclamationmark.triangle"
                 )
@@ -529,10 +648,7 @@ struct ItineraryResultView: View {
                 if let scheduled {
 
                     Text(
-                        formatClock(
-                            scheduled
-                                .startTime
-                        )
+                        "\(formatClock(scheduled.startTime))–\(formatClock(scheduled.departureTime)) • \(formatTime(scheduled.departureTime.timeIntervalSince(scheduled.startTime))) stay"
                     )
                     .font(
                         .caption.bold()
@@ -565,9 +681,13 @@ struct ItineraryResultView: View {
                 } else {
 
                     Label(
-                        "Must visit",
+                        suggestedPlaceIDs.contains(place.id)
+                        ? "Added along your route"
+                        : "Must visit",
                         systemImage:
-                            "heart.fill"
+                            suggestedPlaceIDs.contains(place.id)
+                            ? "sparkles"
+                            : "heart.fill"
                     )
                     .font(
                         .caption
@@ -575,6 +695,15 @@ struct ItineraryResultView: View {
                     .foregroundStyle(
                         .secondary
                     )
+                }
+
+                if let warning = scheduled?.warning {
+                    Label(
+                        warning,
+                        systemImage: "exclamationmark.triangle.fill"
+                    )
+                    .font(.caption)
+                    .foregroundStyle(.orange)
                 }
 
 
@@ -603,6 +732,14 @@ struct ItineraryResultView: View {
 
 
             Spacer()
+
+            Image(systemName: "chevron.right")
+                .font(.caption)
+                .foregroundStyle(.tertiary)
+        }
+        .contentShape(Rectangle())
+        .onTapGesture {
+            selectedPlace = place
         }
     }
 
@@ -995,6 +1132,21 @@ struct ItineraryResultView: View {
         ) {
 
             Button {
+                isSavePromptPresented = true
+            } label: {
+                HStack {
+                    Spacer()
+                    Image(systemName: didSave ? "checkmark.circle.fill" : "bookmark.fill")
+                    Text(didSave ? "Saved" : "Save My Day")
+                        .font(.headline)
+                    Spacer()
+                }
+                .padding(.vertical, 14)
+            }
+            .buttonStyle(.borderedProminent)
+            .disabled(didSave)
+
+            Button {
 
                 dismiss()
 
@@ -1073,6 +1225,38 @@ struct ItineraryResultView: View {
                 .bordered
             )
         }
+    }
+
+    private var defaultSavedTitle: String {
+        let weekday = Date().formatted(.dateTime.weekday(.wide))
+        return "\(weekday) Day"
+    }
+
+    private func saveDay(title: String) {
+        let stops = itinerary.orderedPlaces.map { place in
+            let scheduled = scheduledStop(for: place)
+            return SavedStopRecord(
+                id: place.id,
+                name: place.name,
+                address: place.mapItem.halfwayAddressText,
+                latitude: place.coordinate.latitude,
+                longitude: place.coordinate.longitude,
+                startTime: scheduled?.startTime,
+                endTime: scheduled?.departureTime
+            )
+        }
+
+        modelContext.insert(
+            SavedDay(
+                title: title,
+                plannedStart: itinerary.scheduledStops.first?.startTime,
+                plannedEnd: itinerary.estimatedFinishTime,
+                stops: stops
+            )
+        )
+
+        try? modelContext.save()
+        didSave = true
     }
 
 
