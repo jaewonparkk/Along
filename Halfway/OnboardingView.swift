@@ -1,8 +1,9 @@
 import SwiftUI
 
 struct AppEntryView: View {
-    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
+    @AppStorage("hasCompletedOnboardingV2") private var hasCompletedOnboarding = false
     @State private var isShowingSplash = true
+    @State private var isPlanning = false
 
     var body: some View {
         ZStack {
@@ -10,8 +11,21 @@ struct AppEntryView: View {
                 LaunchSplashView()
                     .transition(.opacity)
             } else if hasCompletedOnboarding {
-                ContentView()
+                if isPlanning {
+                    ContentView(onHome: {
+                        withAnimation(.easeInOut(duration: 0.4)) {
+                            isPlanning = false
+                        }
+                    })
+                    .transition(.move(edge: .trailing).combined(with: .opacity))
+                } else {
+                    AlongHomeView {
+                        withAnimation(.easeInOut(duration: 0.4)) {
+                            isPlanning = true
+                        }
+                    }
                     .transition(.opacity)
+                }
             } else {
                 OnboardingView {
                     withAnimation(.easeInOut(duration: 0.45)) {
@@ -24,7 +38,7 @@ struct AppEntryView: View {
         .statusBarHidden(isShowingSplash)
         .task {
             guard isShowingSplash else { return }
-            try? await Task.sleep(for: .seconds(1))
+            try? await Task.sleep(for: .seconds(3))
             guard !Task.isCancelled else { return }
             withAnimation(.easeInOut(duration: 0.45)) {
                 isShowingSplash = false
@@ -100,7 +114,7 @@ struct OnboardingView: View {
                     }
                 } label: {
                     HStack {
-                        Text(page == 2 ? "Plan my day" : "Continue")
+                        Text(page == 2 ? "Start exploring" : "Continue")
                         Image(systemName: "arrow.right")
                     }
                     .font(.headline)

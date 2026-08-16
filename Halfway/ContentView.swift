@@ -5,6 +5,12 @@ import CoreLocation
 
 struct ContentView: View {
 
+    let onHome: (() -> Void)?
+
+    init(onHome: (() -> Void)? = nil) {
+        self.onHome = onHome
+    }
+
     // MARK: - Services
 
     @StateObject
@@ -489,8 +495,33 @@ struct ContentView: View {
                 !plan.flexibleStops.isEmpty {
 
                 planPanel
+            } else {
+                startPlanningButton
             }
         }
+    }
+
+    private var startPlanningButton: some View {
+        Button {
+            isPlannerPresented = true
+        } label: {
+            HStack(spacing: 10) {
+                Image(systemName: "slider.horizontal.3")
+                Text("Plan a day")
+                    .font(.headline)
+            }
+            .foregroundStyle(.primary)
+            .frame(maxWidth: .infinity)
+            .frame(height: 60)
+            .background(
+                Color(red: 247 / 255, green: 189 / 255, blue: 189 / 255),
+                in: RoundedRectangle(cornerRadius: 20, style: .continuous)
+            )
+            .shadow(color: .black.opacity(0.14), radius: 14, y: 7)
+        }
+        .buttonStyle(.plain)
+        .padding(.horizontal, 18)
+        .padding(.bottom, 14)
     }
 
 
@@ -501,12 +532,22 @@ struct ContentView: View {
 
         HStack(spacing: 12) {
 
+            if let onHome {
+                Button(action: onHome) {
+                    Image(systemName: "chevron.left")
+                        .frame(width: 38, height: 38)
+                        .background(.regularMaterial)
+                        .clipShape(Circle())
+                }
+                .buttonStyle(.plain)
+            }
+
             VStack(
                 alignment: .leading,
                 spacing: 2
             ) {
 
-                Text("Halfway")
+                Text("Along")
                     .font(
                         .system(
                             size: 26,
@@ -534,7 +575,7 @@ struct ContentView: View {
                 } else {
 
                     Text(
-                        "Tell us what you want to do."
+                        "Where should today take you?"
                     )
                     .font(.caption)
                     .foregroundStyle(.secondary)
@@ -564,40 +605,6 @@ struct ContentView: View {
             .buttonStyle(.plain)
 
 
-            Button {
-
-                isPlannerPresented =
-                    true
-
-            } label: {
-
-                HStack(spacing: 7) {
-
-                    Image(
-                        systemName:
-                            "slider.horizontal.3"
-                    )
-
-
-                    Text("Plan")
-                        .font(
-                            .subheadline
-                                .weight(.semibold)
-                        )
-                }
-                .padding(
-                    .horizontal,
-                    14
-                )
-                .frame(height: 42)
-                .background(
-                    .regularMaterial
-                )
-                .clipShape(
-                    Capsule()
-                )
-            }
-            .buttonStyle(.plain)
         }
         .padding(.horizontal, 18)
         .padding(.vertical, 14)
