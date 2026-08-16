@@ -36,15 +36,10 @@ struct PlanSetupView: View {
         NavigationStack {
 
             Form {
-
                 mustVisitSection
-
                 flexibleStopsSection
-
                 visitOrderSection
-
                 todaysStyleSection
-
                 planSummarySection
             }
             .navigationTitle(
@@ -61,7 +56,6 @@ struct PlanSetupView: View {
                 ) {
 
                     Button("Cancel") {
-
                         dismiss()
                     }
                 }
@@ -122,23 +116,10 @@ struct PlanSetupView: View {
             } else {
 
                 ForEach(
-                    Array(
-                        plan
-                            .anchors
-                            .enumerated()
-                    ),
-                    id:
-                        \.element.id
-                ) {
-                    index,
-                    anchor in
-
-
-                    anchorRow(
-                        anchor,
-                        index:
-                            index
-                    )
+                    Array(plan.anchors.enumerated()),
+                    id: \.element.id
+                ) { index, anchor in
+                    anchorRow(anchor, index: index)
                 }
             }
 
@@ -609,9 +590,7 @@ struct PlanSetupView: View {
 
 
             Button {
-
                 onBuild()
-
                 dismiss()
 
             } label: {
@@ -677,28 +656,13 @@ struct PlanSetupView: View {
         HStack {
 
             ZStack {
-
                 Circle()
-                    .fill(
-                        Color.accentColor
-                    )
-                    .frame(
-                        width:
-                            30,
-                        height:
-                            30
-                    )
+                    .fill(Color.accentColor)
+                    .frame(width: 30, height: 30)
 
-
-                Text(
-                    "\(index + 1)"
-                )
-                .font(
-                    .caption.bold()
-                )
-                .foregroundStyle(
-                    .white
-                )
+                Text("\(index + 1)")
+                    .font(.caption.bold())
+                    .foregroundStyle(.white)
             }
 
 

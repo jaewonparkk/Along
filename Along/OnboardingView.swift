@@ -1,8 +1,9 @@
 import SwiftUI
 
 struct AppEntryView: View {
-    @AppStorage("hasCompletedOnboardingV2") private var hasCompletedOnboarding = false
+    @AppStorage("shouldSkipOnboardingV3") private var shouldSkipOnboarding = false
     @State private var isShowingSplash = true
+    @State private var isShowingOnboarding = true
     @State private var isPlanning = false
 
     var body: some View {
@@ -10,7 +11,7 @@ struct AppEntryView: View {
             if isShowingSplash {
                 LaunchSplashView()
                     .transition(.opacity)
-            } else if hasCompletedOnboarding {
+            } else if shouldSkipOnboarding || !isShowingOnboarding {
                 if isPlanning {
                     ContentView(onHome: {
                         withAnimation(.easeInOut(duration: 0.4)) {
@@ -29,7 +30,12 @@ struct AppEntryView: View {
             } else {
                 OnboardingView {
                     withAnimation(.easeInOut(duration: 0.45)) {
-                        hasCompletedOnboarding = true
+                        isShowingOnboarding = false
+                    }
+                } onDontShowAgain: {
+                    withAnimation(.easeInOut(duration: 0.45)) {
+                        shouldSkipOnboarding = true
+                        isShowingOnboarding = false
                     }
                 }
                 .transition(.opacity)
@@ -49,6 +55,7 @@ struct AppEntryView: View {
 
 struct OnboardingView: View {
     let onComplete: () -> Void
+    let onDontShowAgain: () -> Void
     @State private var page = 0
 
     private let cream = Color(red: 1, green: 248 / 255, blue: 243 / 255)
@@ -125,10 +132,17 @@ struct OnboardingView: View {
                 }
                 .padding(.horizontal, 24)
 
+                if page == 2 {
+                    Button("Don’t show this again", action: onDontShowAgain)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                        .padding(.top, 12)
+                }
+
                 Text("No account needed · Saved days stay on this device")
                     .font(.caption2)
                     .foregroundStyle(.secondary)
-                    .padding(.top, 12)
+                    .padding(.top, page == 2 ? 8 : 12)
                     .padding(.bottom, 16)
             }
         }
@@ -279,5 +293,5 @@ struct OnboardingView: View {
 }
 
 #Preview {
-    OnboardingView {}
+    OnboardingView(onComplete: {}, onDontShowAgain: {})
 }

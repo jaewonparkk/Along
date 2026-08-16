@@ -66,6 +66,10 @@ struct ContentView: View {
     private var isLocationIntroPresented =
         false
 
+    @State
+    private var routeOrderSuggestion:
+        RouteOrderSuggestion?
+
 
     // MARK: - Map
 
@@ -213,6 +217,19 @@ struct ContentView: View {
                         true
                 }
             }
+        }
+        .sheet(item: $routeOrderSuggestion) { suggestion in
+            RouteOrderReviewView(
+                suggestion: suggestion,
+                onUseSuggestion: {
+                    applySuggestedOrder(suggestion)
+                },
+                onKeepOrder: {
+                    routeOrderSuggestion = nil
+                    presentResultAfterDelay()
+                }
+            )
+            .interactiveDismissDisabled()
         }
         .sheet(isPresented: $isSavedDaysPresented) {
             SavedDaysView()
@@ -1025,7 +1042,8 @@ struct ContentView: View {
     // MARK: - Build
 
     private func buildCurrentPlan(
-        showResult: Bool
+        showResult: Bool,
+        checkBacktracking: Bool = true
     ) {
 
         directionsService.clear()
@@ -1090,20 +1108,69 @@ struct ContentView: View {
                     return
                 }
 
+                if checkBacktracking,
+                   let suggestion = RouteBacktrackingDetector.suggestion(
+                       for: itinerary.orderedPlaces,
+                       from: locationManager.lastLocation,
+                       travelMode: travelMode
+                   ) {
+                    routeOrderSuggestion = suggestion
+                    return
+                }
 
-                DispatchQueue.main
-                    .asyncAfter(
-                        deadline:
-                            .now()
-                            +
-                            0.35
-                    ) {
-
-                        isResultPresented =
-                            true
-                    }
+                presentResultAfterDelay()
             }
         }
+    }
+
+    private func applySuggestedOrder(
+        _ suggestion: RouteOrderSuggestion
+    ) {
+        guard let itinerary = planningEngine.generatedItinerary else {
+            routeOrderSuggestion = nil
+            return
+        }
+
+        let references = suggestion.places.compactMap { place -> PlanRequest.StopReference? in
+            if plan.anchors.contains(where: { $0.place.id == place.id }) {
+                return .anchor(place.id)
+            }
+
+            if let resolved = itinerary.resolvedFlexibleStops.first(where: { $0.place.id == place.id }) {
+                return .flexible(resolved.source.id)
+            }
+
+            return nil
+        }
+
+        guard references.count == suggestion.places.count else {
+            routeOrderSuggestion = nil
+            presentResultAfterDelay()
+            return
+        }
+
+        plan.visitOrder = references
+        routeOrderSuggestion = nil
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+            buildCurrentPlan(
+                showResult: true,
+                checkBacktracking: false
+            )
+        }
+    }
+
+    private func presentResultAfterDelay() {
+        DispatchQueue.main
+            .asyncAfter(
+                deadline:
+                    .now()
+                    +
+                    0.35
+            ) {
+                isResultPresented =
+                    true
+            }
     }
 
 
