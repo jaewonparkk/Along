@@ -1,9 +1,13 @@
 import SwiftUI
 import MapKit
 import CoreLocation
+import SwiftData
 
 
 struct ContentView: View {
+
+    @Query(sort: \SavedPlace.savedAt, order: .reverse)
+    private var savedPlaces: [SavedPlace]
 
     let onHome: (() -> Void)?
 
@@ -1057,7 +1061,10 @@ struct ContentView: View {
                     .lastLocation,
 
             travelMode:
-                travelMode
+                travelMode,
+
+            savedPlaces:
+                savedPlaces.map(\.snapshot)
         ) {
             itinerary in
 

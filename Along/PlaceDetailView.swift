@@ -1,6 +1,7 @@
 import SwiftUI
 import MapKit
 import GooglePlaces
+import SwiftData
 
 enum PlaceDetailOpenStatus {
     case open
@@ -21,6 +22,7 @@ struct PlaceDetailData {
     let photo: UIImage?
     let todayHours: String?
     let openStatus: PlaceDetailOpenStatus
+    let suggestedCategory: FlexibleStopCategory?
 }
 
 struct PlaceDetailView: View {
@@ -28,7 +30,14 @@ struct PlaceDetailView: View {
     let scheduled: ScheduledStop?
 
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.modelContext) private var modelContext
+    @Query private var savedPlaces: [SavedPlace]
     @State private var detail: PlaceDetailData?
+
+    private var savedPlace: SavedPlace? {
+        let key = SavedPlace.key(for: place)
+        return savedPlaces.first { $0.placeKey == key }
+    }
 
     var body: some View {
         NavigationStack {
@@ -50,6 +59,19 @@ struct PlaceDetailView: View {
 
                     statusCard
                     visitCard
+
+                    Button {
+                        toggleSavedPlace()
+                    } label: {
+                        Label(
+                            savedPlace == nil ? "Save to Along" : "Saved to Along",
+                            systemImage: savedPlace == nil ? "heart" : "heart.fill"
+                        )
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                    }
+                    .buttonStyle(.bordered)
+                    .tint(savedPlace == nil ? Color.accentColor : .pink)
 
                     Button {
                         place.mapItem.openInMaps()
@@ -172,5 +194,20 @@ struct PlaceDetailView: View {
         if minutes >= 60 && minutes % 60 == 0 { return "\(minutes / 60) hr" }
         if minutes >= 60 { return "\(minutes / 60) hr \(minutes % 60) min" }
         return "\(minutes) min"
+    }
+
+    private func toggleSavedPlace() {
+        if let savedPlace {
+            modelContext.delete(savedPlace)
+        } else {
+            modelContext.insert(
+                SavedPlace(
+                    place: place,
+                    category: detail?.suggestedCategory ?? .custom
+                )
+            )
+        }
+
+        try? modelContext.save()
     }
 }

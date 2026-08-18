@@ -9,6 +9,21 @@ struct RouteSuggestion: Identifiable {
     let category: FlexibleStopCategory
     let insertionIndex: Int
     let addedDistance: CLLocationDistance
+    let isSaved: Bool
+
+    init(
+        mapItem: MKMapItem,
+        category: FlexibleStopCategory,
+        insertionIndex: Int,
+        addedDistance: CLLocationDistance,
+        isSaved: Bool = false
+    ) {
+        self.mapItem = mapItem
+        self.category = category
+        self.insertionIndex = insertionIndex
+        self.addedDistance = addedDistance
+        self.isSaved = isSaved
+    }
 }
 
 @MainActor
@@ -21,7 +36,8 @@ final class RouteSuggestionService: ObservableObject {
 
     func search(
         category: FlexibleStopCategory,
-        along places: [PlannedPlace]
+        along places: [PlannedPlace],
+        savedPlaces: [SavedPlaceSnapshot] = []
     ) {
         activeSearch?.cancel()
         suggestions = []
@@ -37,13 +53,30 @@ final class RouteSuggestionService: ObservableObject {
 
         let search = MKLocalSearch(request: request)
         activeSearch = search
+
+        let savedSuggestions = savedPlaces
+            .filter { $0.category == category }
+            .map { saved -> RouteSuggestion in
+                let item = saved.plannedPlace.mapItem
+                let placement = bestInsertion(for: item, in: places)
+                return RouteSuggestion(
+                    mapItem: item,
+                    category: category,
+                    insertionIndex: placement.index,
+                    addedDistance: placement.detour,
+                    isSaved: true
+                )
+            }
+            .filter { $0.addedDistance <= 5_000 }
+            .sorted { $0.addedDistance < $1.addedDistance }
+
         search.start { [weak self] response, error in
             DispatchQueue.main.async {
                 guard let self, self.activeSearch === search else { return }
                 self.activeSearch = nil
                 self.isLoading = false
 
-                if error != nil {
+                if error != nil, savedSuggestions.isEmpty {
                     self.message = "Suggestions are temporarily unavailable. Try again in a moment."
                     return
                 }
@@ -59,12 +92,25 @@ final class RouteSuggestionService: ObservableObject {
                 }
                 .sorted { $0.addedDistance < $1.addedDistance }
 
-                self.suggestions = Array(ranked.prefix(5))
+                let savedKeys = Set(savedSuggestions.map { self.suggestionKey($0.mapItem) })
+                let newSuggestions = ranked.filter {
+                    !savedKeys.contains(self.suggestionKey($0.mapItem))
+                }
+
+                self.suggestions = Array((savedSuggestions + newSuggestions).prefix(5))
                 if self.suggestions.isEmpty {
                     self.message = "No good matches were found along this route."
                 }
             }
         }
+    }
+
+    private func suggestionKey(_ item: MKMapItem) -> String {
+        String(
+            format: "%.5f,%.5f",
+            item.alongCoordinate.latitude,
+            item.alongCoordinate.longitude
+        )
     }
 
     private func query(for category: FlexibleStopCategory) -> String {

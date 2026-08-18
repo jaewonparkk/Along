@@ -66,6 +66,9 @@ final class PlanningEngine:
         travelMode:
             TravelMode,
 
+        savedPlaces:
+            [SavedPlaceSnapshot] = [],
+
         completion:
             @escaping (
                 GeneratedItinerary?
@@ -270,7 +273,10 @@ final class PlanningEngine:
                                         context.center,
 
                                     radiusMeters:
-                                        context.radiusMeters
+                                        context.radiusMeters,
+
+                                    savedPlaces:
+                                        savedPlaces
                                 )
 
 

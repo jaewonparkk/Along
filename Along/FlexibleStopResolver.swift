@@ -47,7 +47,10 @@ final class FlexibleStopResolver {
             CLLocationCoordinate2D,
 
         radiusMeters:
-            CLLocationDistance
+            CLLocationDistance,
+
+        savedPlaces:
+            [SavedPlaceSnapshot] = []
     ) async throws -> [PlaceCandidate] {
 
         let queries =
@@ -63,6 +66,45 @@ final class FlexibleStopResolver {
 
         var merged:
             [PlaceCandidate] = []
+
+
+        // MARK: Saved Along Places First
+
+        let centerLocation = CLLocation(
+            latitude: center.latitude,
+            longitude: center.longitude
+        )
+
+        let savedRadius = min(10_000, max(2_500, radiusMeters * 1.5))
+
+        let nearbySavedPlaces = savedPlaces
+            .filter { saved in
+                (saved.category == stop.category || stop.category == .custom)
+                && saved.location.distance(from: centerLocation) <= savedRadius
+            }
+            .sorted {
+                $0.location.distance(from: centerLocation)
+                < $1.location.distance(from: centerLocation)
+            }
+
+        for (index, saved) in nearbySavedPlaces.prefix(8).enumerated() {
+            try Task.checkCancellation()
+
+            let enriched = await placesService.enrich(
+                anchor: saved.plannedPlace
+            )
+
+            let candidate = PlaceCandidate(
+                plannedPlace: enriched.plannedPlace,
+                googlePlace: enriched.googlePlace,
+                searchRank: -10 + index
+            )
+
+            let key = candidateKey(candidate)
+            guard !seen.contains(key) else { continue }
+            seen.insert(key)
+            merged.append(candidate)
+        }
 
 
         /*

@@ -53,6 +53,9 @@ struct ItineraryResultView: View {
     @Environment(\.modelContext)
     private var modelContext
 
+    @Query(sort: \SavedPlace.savedAt, order: .reverse)
+    private var savedPlaces: [SavedPlace]
+
     @StateObject
     private var suggestionService = RouteSuggestionService()
 
@@ -187,6 +190,11 @@ struct ItineraryResultView: View {
                                 Text(suggestion.mapItem.name ?? "Suggested place")
                                     .font(.subheadline.weight(.semibold))
                                     .foregroundStyle(.primary)
+                                if suggestion.isSaved {
+                                    Label("Saved to Along", systemImage: "heart.fill")
+                                        .font(.caption2)
+                                        .foregroundStyle(.pink)
+                                }
                                 Text("Fits between stops • about \(formatDistance(suggestion.addedDistance)) extra")
                                     .font(.caption2)
                                     .foregroundStyle(.secondary)
@@ -208,7 +216,8 @@ struct ItineraryResultView: View {
         Button {
             suggestionService.search(
                 category: category,
-                along: itinerary.orderedPlaces
+                along: itinerary.orderedPlaces,
+                savedPlaces: savedPlaces.map(\.snapshot)
             )
         } label: {
             Label(category.title, systemImage: category.icon)
@@ -669,6 +678,12 @@ struct ItineraryResultView: View {
                         )
                 )
 
+                if isSavedPlace(place) {
+                    Label("Saved to Along", systemImage: "heart.fill")
+                        .font(.caption)
+                        .foregroundStyle(.pink)
+                }
+
 
                 if let resolved {
 
@@ -862,6 +877,11 @@ struct ItineraryResultView: View {
                 )
             }
         }
+    }
+
+    private func isSavedPlace(_ place: PlannedPlace) -> Bool {
+        let key = SavedPlace.key(for: place)
+        return savedPlaces.contains { $0.placeKey == key }
     }
 
 

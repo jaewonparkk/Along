@@ -56,6 +56,6 @@ struct AlongApp: App {
 
             AppEntryView()
         }
-        .modelContainer(for: SavedDay.self)
+        .modelContainer(for: [SavedDay.self, SavedPlace.self])
     }
 }

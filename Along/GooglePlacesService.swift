@@ -88,7 +88,8 @@ final class GooglePlacesService {
             return PlaceDetailData(
                 photo: nil,
                 todayHours: nil,
-                openStatus: .unknown
+                openStatus: .unknown,
+                suggestedCategory: nil
             )
         }
 
@@ -120,8 +121,22 @@ final class GooglePlacesService {
         return PlaceDetailData(
             photo: photo,
             todayHours: hours,
-            openStatus: PlaceDetailOpenStatus(status)
+            openStatus: PlaceDetailOpenStatus(status),
+            suggestedCategory: suggestedCategory(for: googlePlace.types ?? [])
         )
+    }
+
+    private func suggestedCategory(for types: [String]) -> FlexibleStopCategory? {
+        let values = Set(types.map { $0.lowercased() })
+
+        if !values.isDisjoint(with: ["cafe", "coffee_shop"]) { return .coffee }
+        if !values.isDisjoint(with: ["bakery", "dessert_shop", "ice_cream_shop"]) { return .dessert }
+        if !values.isDisjoint(with: ["bar", "night_club", "wine_bar"]) { return .drinks }
+        if !values.isDisjoint(with: ["restaurant", "food", "meal_takeaway", "meal_delivery"]) { return .food }
+        if !values.isDisjoint(with: ["store", "shopping_mall", "clothing_store", "book_store"]) { return .shopping }
+        if !values.isDisjoint(with: ["park", "campground", "natural_feature"]) { return .outdoors }
+        if !values.isDisjoint(with: ["museum", "aquarium", "art_gallery", "tourist_attraction", "amusement_park"]) { return .activity }
+        return nil
     }
 
 
