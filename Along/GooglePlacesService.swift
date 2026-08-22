@@ -64,6 +64,7 @@ final class GooglePlacesService {
             GMSPlaceProperty.coordinate,
             GMSPlaceProperty.formattedAddress,
             GMSPlaceProperty.rating,
+            GMSPlaceProperty.userRatingsTotal,
             GMSPlaceProperty.types,
             GMSPlaceProperty.photos,
 

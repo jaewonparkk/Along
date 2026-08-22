@@ -52,6 +52,34 @@ struct PlaceCandidate: Identifiable {
         Int
 
 
+    /*
+     Recommendation signals are kept with the candidate so the scheduler can
+     balance place quality against the actual detour and visit time.
+     */
+
+    let isSavedByUser:
+        Bool
+
+
+    let queryPriority:
+        Int
+
+
+    init(
+        plannedPlace: PlannedPlace,
+        googlePlace: GMSPlace?,
+        searchRank: Int,
+        isSavedByUser: Bool = false,
+        queryPriority: Int = 0
+    ) {
+        self.plannedPlace = plannedPlace
+        self.googlePlace = googlePlace
+        self.searchRank = searchRank
+        self.isSavedByUser = isSavedByUser
+        self.queryPriority = queryPriority
+    }
+
+
     var name: String {
 
         plannedPlace.name

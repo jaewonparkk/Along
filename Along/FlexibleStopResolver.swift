@@ -97,7 +97,9 @@ final class FlexibleStopResolver {
             let candidate = PlaceCandidate(
                 plannedPlace: enriched.plannedPlace,
                 googlePlace: enriched.googlePlace,
-                searchRank: -10 + index
+                searchRank: index,
+                isSavedByUser: true,
+                queryPriority: 0
             )
 
             let key = candidateKey(candidate)
@@ -140,7 +142,7 @@ final class FlexibleStopResolver {
                 )
 
 
-            for query in queries {
+            for (queryPriority, query) in queries.enumerated() {
 
                 if Task.isCancelled {
 
@@ -166,9 +168,16 @@ final class FlexibleStopResolver {
                     for candidate
                         in candidates {
 
+                        let rankedCandidate = PlaceCandidate(
+                            plannedPlace: candidate.plannedPlace,
+                            googlePlace: candidate.googlePlace,
+                            searchRank: candidate.searchRank,
+                            queryPriority: queryPriority
+                        )
+
                         let key =
                             candidateKey(
-                                candidate
+                                rankedCandidate
                             )
 
 
@@ -186,7 +195,7 @@ final class FlexibleStopResolver {
 
 
                         merged.append(
-                            candidate
+                            rankedCandidate
                         )
                     }
 
@@ -346,6 +355,13 @@ final class FlexibleStopResolver {
 
             break
         }
+
+
+        // Final fallback: if the user's exact phrase has no useful result,
+        // still return a sensible nearby place in the requested category.
+        queries.append(
+            genericCategoryQuery(for: stop.category)
+        )
 
 
         return uniqueStrings(

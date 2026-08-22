@@ -762,6 +762,11 @@ final class ScheduleConstraintEngine {
         switch availability {
 
         case .closed:
+            // Required anchors remain visible so the user can fix the plan,
+            // but a flexible recommendation known to be closed is never used.
+            if flexibleStop != nil {
+                return nil
+            }
             hoursPenalty = 24 * 60 * 60
             warnings.append("Opening hours conflict with this visit time. Check before you go.")
 
@@ -776,6 +781,9 @@ final class ScheduleConstraintEngine {
             // No published hours means no restriction. Preserve the user's
             // chosen order instead of rejecting the whole itinerary.
             hoursPenalty = 0
+            if flexibleStop != nil {
+                warnings.append("Opening hours aren't available. Check before you go.")
+            }
         }
 
 
@@ -909,6 +917,31 @@ final class ScheduleConstraintEngine {
         }
 
 
+        // MARK: Recommendation Quality
+
+        let recommendationBonus: TimeInterval
+
+        if flexibleStop != nil {
+            let savedPoints = candidate.isSavedByUser ? 40.0 : 0.0
+            let rating = Double(candidate.googlePlace?.rating ?? 0)
+            let ratingPoints = rating > 0
+                ? max(0, min(25, (rating - 3.5) / 1.5 * 25))
+                : 0
+            let reviewCount = Double(candidate.googlePlace?.userRatingsTotal ?? 0)
+            let reviewPoints = min(15, log10(max(1, reviewCount)) / 3 * 15)
+            let queryPoints = max(0, 25 - Double(candidate.queryPriority) * 8)
+
+            // One point equals three minutes of preference. Travel time is
+            // still scored separately, so a far-away favorite cannot win only
+            // because it was saved or highly rated.
+            recommendationBonus =
+                (savedPoints + ratingPoints + reviewPoints + queryPoints)
+                * 3 * 60
+        } else {
+            recommendationBonus = 0
+        }
+
+
         // MARK: Goal Weights
 
         let travelWeight:
@@ -990,6 +1023,8 @@ final class ScheduleConstraintEngine {
             closingUrgencyBonus
             +
             startPreferenceAdjustment
+            -
+            recommendationBonus
 
 
         return EvaluatedOption(
